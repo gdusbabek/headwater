@@ -5,7 +5,7 @@ import headwater.bitmap.IOBitmap;
 import headwater.data.IO;
 import headwater.data.CassandraIO;
 
-public class TestIntegrationCBitmap extends AbstractBitmapTest {
+public class IntegrationTestCassandraBitmap extends AbstractBitmapTest {
     
     private IO io;
     

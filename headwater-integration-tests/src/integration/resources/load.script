@@ -16,4 +16,10 @@ create column family my_data_index
     and comparator='BytesType'
     and key_validation_class='BytesType'
     and default_validation_class='BytesType';
+    
+create column family my_data_trigram_index
+    with column_type='Standard'
+    and comparator='BytesType'
+    and key_validation_class='BytesType'
+    and default_validation_class='BytesType';
 

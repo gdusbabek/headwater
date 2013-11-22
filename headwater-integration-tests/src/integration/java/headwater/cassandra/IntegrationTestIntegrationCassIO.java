@@ -5,7 +5,7 @@ import headwater.data.CassandraIO;
 import org.junit.Before;
 
 
-public class TestIntegrationCassIO extends AbstractIOTest {
+public class IntegrationTestIntegrationCassIO extends AbstractIOTest {
     
     @Before
     public void createIO() throws Exception {

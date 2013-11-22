@@ -4,7 +4,7 @@ import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.MemoryKeyObserver;
 
-public class TestCTrigramIndex extends AbstractTrigramIndexTest {
+public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
     
     @Override
     public ITrigramIndex<String, String> makeIndex() {
