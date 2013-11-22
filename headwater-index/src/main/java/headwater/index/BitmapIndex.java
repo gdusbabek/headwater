@@ -4,8 +4,8 @@ import com.google.common.collect.TreeBasedTable;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.Utils;
+import headwater.data.KeyObserver;
 import headwater.hash.BitHashableKey;
-import headwater.data.DataAccess;
 import headwater.hash.FunnelHasher;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     private final TreeBasedTable<F, V, IBitmap> bitmaps;
     
     private BitmapFactory bitmapFactory;
-    private DataAccess<K, F, V> bitToKey = null;
+    private KeyObserver<K, F, V> bitToKey = null;
     
     public BitmapIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, FunnelHasher<V> valueHasher) {
         this.keyHasher = keyHasher;
@@ -39,7 +39,7 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
         return this;
     }
     
-    public BitmapIndex<K, F, V> withObserver(DataAccess<K, F, V> observer) {
+    public BitmapIndex<K, F, V> withObserver(KeyObserver<K, F, V> observer) {
         this.bitToKey = observer;
         return this;
     }

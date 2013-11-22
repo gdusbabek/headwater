@@ -1,16 +1,15 @@
 package headwater.cassandra;
 
 import com.netflix.astyanax.Serializer;
-import headwater.data.DataAccess;
+import headwater.data.KeyObserver;
 import headwater.hash.BitHashableKey;
-import headwater.hash.FunnelHasher;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class CassandraDataAccess<K, F, V> implements DataAccess<K, F, V> {
+public class CassandraKeyObserver<K, F, V> implements KeyObserver<K, F, V> {
     
     private final IO io;
     private final Map<Long, K> bitToKeys;
@@ -18,7 +17,7 @@ public class CassandraDataAccess<K, F, V> implements DataAccess<K, F, V> {
     private final Serializer<F> fieldSerializer;
     private final Serializer<V> valueSerializer;
     
-    public CassandraDataAccess(IO io, Class<K> keyClass, Serializer<K> keySerializer, Serializer<F> fieldSerializer, Serializer<V> valueSerializer) {
+    public CassandraKeyObserver(IO io, Class<K> keyClass, Serializer<K> keySerializer, Serializer<F> fieldSerializer, Serializer<V> valueSerializer) {
         this.io = io;
         
         // todo: cardinality warning.

@@ -8,9 +8,9 @@ import com.google.common.hash.Hashing;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
-import headwater.data.DataAccess;
+import headwater.data.KeyObserver;
+import headwater.data.MemoryKeyObserver;
 import headwater.hash.Hashers;
-import headwater.data.MemoryDataAccess;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,13 +23,13 @@ import java.util.Set;
 
 public class TestBitmapIndex {
     
-    private DataAccess<String, String, String> observer;
+    private KeyObserver<String, String, String> observer;
     private BitmapFactory bitmapFactory;
     
     @Before
     public void setUpHelpers() {
         final int numBits = 0x00100000; // 1 million bits.
-        observer = new MemoryDataAccess<String, String, String>();
+        observer = new MemoryKeyObserver<String, String, String>();
         bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {
                 throw new RuntimeException("Not implemented");

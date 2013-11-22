@@ -3,8 +3,8 @@ package headwater.text;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
-import headwater.data.DataAccess;
-import headwater.data.MemoryDataAccess;
+import headwater.data.KeyObserver;
+import headwater.data.MemoryKeyObserver;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
 
@@ -14,7 +14,7 @@ public class TestTrigramIndex extends AbstractTrigramIndexTest {
     public ITrigramIndex<String, String> makeIndex() {
         final int bits = 0x00100000;
         
-        DataAccess<String, String, String> observer = new MemoryDataAccess<String, String, String>();
+        KeyObserver<String, String, String> observer = new MemoryKeyObserver<String, String, String>();
         
         BitmapFactory bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {

@@ -4,7 +4,7 @@ import headwater.hash.BitHashableKey;
 
 import java.util.Collection;
 
-public interface DataAccess<K, F, V> {
+public interface KeyObserver<K, F, V> {
     public void observe(BitHashableKey<K> key, F field, V value);
     
     public V lookup(K key, F field);

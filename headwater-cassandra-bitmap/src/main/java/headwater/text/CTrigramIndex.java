@@ -12,8 +12,8 @@ import headwater.bitmap.IBitmap;
 import headwater.bitmap.Utils;
 import headwater.cassandra.ColumnObserver;
 import headwater.cassandra.IO;
-import headwater.data.DataAccess;
-import headwater.data.MemoryDataAccess;
+import headwater.data.KeyObserver;
+import headwater.data.MemoryKeyObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
@@ -36,7 +36,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private IO io;
     
-    private DataAccess<K, F, String> observer = new MemoryDataAccess<K, F, String>();
+    private KeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
     
     
     public CTrigramIndex(long numBits, int segmentBitLength) {
@@ -49,7 +49,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
         return this;
     }
     
-    public CTrigramIndex<K, F> withObserver(DataAccess<K, F, String> observer) {
+    public CTrigramIndex<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }

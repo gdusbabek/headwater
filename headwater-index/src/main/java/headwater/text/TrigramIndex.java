@@ -5,9 +5,9 @@ import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.Utils;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
-import headwater.data.DataAccess;
+import headwater.data.KeyObserver;
 import headwater.hash.Hashers;
-import headwater.data.MemoryDataAccess;
+import headwater.data.MemoryKeyObserver;
 import headwater.index.BitmapIndex;
 import headwater.index.Filter;
 
@@ -20,7 +20,7 @@ import java.util.Set;
 public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private BitmapIndex<K, F, Trigram> index;
-    private DataAccess<K, F, String> observer = new MemoryDataAccess<K, F, String>();
+    private KeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
     private FunnelHasher<K> keyHasher;
     
     public TrigramIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, long trigramHashBitLength) {
@@ -33,7 +33,7 @@ public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
         return this;
     }
     
-    public TrigramIndex<K, F> withIndexObserver(DataAccess<K, F, String> observer) {
+    public TrigramIndex<K, F> withIndexObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }
