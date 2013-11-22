@@ -58,7 +58,7 @@ public class Hashers {
         }
     };
     
-    public static synchronized <T> FunnelHasher<T> makeHasher(final Class<T> cls, int bits) {
+    public static synchronized <T> FunnelHasher<T> makeHasher(final Class<T> cls, long bits) {
         return new FunnelHasher<T>(HASH_FUNCTION, bits) {
             private final Funnel<T> delegate = funnelFor(cls);
             

@@ -8,9 +8,9 @@ import com.google.common.hash.Hashing;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
-import headwater.hash.HashObserver;
+import headwater.data.DataAccess;
 import headwater.hash.Hashers;
-import headwater.hash.MemoryHashObserver;
+import headwater.data.MemoryDataAccess;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,13 +23,13 @@ import java.util.Set;
 
 public class TestBitmapIndex {
     
-    private HashObserver<String> observer;
+    private DataAccess<String, String, String> observer;
     private BitmapFactory bitmapFactory;
     
     @Before
     public void setUpHelpers() {
         final int numBits = 0x00100000; // 1 million bits.
-        observer = new MemoryHashObserver<String>();
+        observer = new MemoryDataAccess<String, String, String>();
         bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {
                 throw new RuntimeException("Not implemented");
@@ -100,7 +100,6 @@ public class TestBitmapIndex {
     @Test
     public void testSimpleSliceFilter() throws Throwable {
         final int bits = 0x00100000;
-        HashObserver<String> observer = new MemoryHashObserver<String>();
         BitmapIndex<String, String, String> index = new BitmapIndex<String, String, String>(
                 Hashers.makeHasher(String.class, bits), 
                 Hashers.makeHasher(String.class, bits), 

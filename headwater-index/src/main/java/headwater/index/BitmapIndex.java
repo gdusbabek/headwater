@@ -3,10 +3,10 @@ package headwater.index;
 import com.google.common.collect.TreeBasedTable;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
+import headwater.bitmap.Utils;
 import headwater.hash.BitHashableKey;
+import headwater.data.DataAccess;
 import headwater.hash.FunnelHasher;
-import headwater.hash.HashObserver;
-import headwater.hash.MemoryHashObserver;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +25,7 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     private final TreeBasedTable<F, V, IBitmap> bitmaps;
     
     private BitmapFactory bitmapFactory;
-    private HashObserver<K> bitToKey = new MemoryHashObserver<K>();
+    private DataAccess<K, F, V> bitToKey = null;
     
     public BitmapIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, FunnelHasher<V> valueHasher) {
         this.keyHasher = keyHasher;
@@ -39,7 +39,7 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
         return this;
     }
     
-    public BitmapIndex<K, F, V> withObserver(HashObserver<K> observer) {
+    public BitmapIndex<K, F, V> withObserver(DataAccess<K, F, V> observer) {
         this.bitToKey = observer;
         return this;
     }
@@ -51,7 +51,8 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     public void add(K key, F field, V value) {
         BitHashableKey<K> bitKey = keyHasher.hashableKey(key);
         getBitmap(field, value).set(bitKey.getHashBit());
-        bitToKey.observe(key, bitKey.getHashBit());
+        if (bitToKey != null)
+            bitToKey.observe(bitKey, field, value);
     }
 
     public Collection<K> search(F field, V value) {
@@ -61,6 +62,24 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     }
 
     public Collection<K> search(F field, Filter<V> filter) {
+        Set<Long> bitResults = _filter(field, filter);
+        Collection<K> keyHits = new ArrayList<K>(bitResults.size());
+        for (long bit : bitResults)
+            keyHits.add(bitToKey.toKey(bit));
+        return keyHits;
+    }
+    
+    // returns the bits in the index that are asserted.
+    public long[] filter(F field, V value) {
+        return getBitmap(field, value).getAsserted();
+    }
+    
+    public long[] filter(F field, Filter<V> filter) {
+        Set<Long> results = _filter(field, filter);
+        return Utils.unbox(results.toArray(new Long[results.size()]));
+    }
+    
+    private Set<Long> _filter(F field, Filter<V> filter) {
         // todo: using a hashset here is wrong.
         Set<Long> bitResults = new HashSet<Long>(); 
         SortedMap<V, IBitmap> rowMaps = bitmaps.row(field);
@@ -73,12 +92,10 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
                 }
             }
         }
-        
-        Collection<K> keyHits = new ArrayList<K>(bitResults.size());
-        for (long bit : bitResults)
-            keyHits.add(bitToKey.toKey(bit));
-        return keyHits;
+        return bitResults;
     }
+    
+    
 
     public boolean contains(F field, V value) {
         return search(field, value).size() > 0;
@@ -87,11 +104,6 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     //
     // helpers.
     //
-    
-    // returns the bits in the index that are asserted.
-    private long[] filter(F field, V value) {
-        return getBitmap(field, value).getAsserted();
-    }
     
     // creates new bitmaps on demand.
     private IBitmap getBitmap(F field, V value) {
