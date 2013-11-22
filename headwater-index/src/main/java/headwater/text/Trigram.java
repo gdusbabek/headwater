@@ -1,7 +1,7 @@
 package headwater.text;
 
 import com.google.common.hash.PrimitiveSink;
-import headwater.bitmap.Utils;
+import headwater.util.Utils;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
 

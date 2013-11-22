@@ -3,7 +3,7 @@ package headwater.index;
 import com.google.common.collect.TreeBasedTable;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
-import headwater.bitmap.Utils;
+import headwater.util.Utils;
 import headwater.data.KeyObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;

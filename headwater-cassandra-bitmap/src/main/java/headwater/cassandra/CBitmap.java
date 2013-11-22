@@ -2,7 +2,7 @@ package headwater.cassandra;
 
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
 import headwater.bitmap.AbstractBitmap;
-import headwater.bitmap.Utils;
+import headwater.util.Utils;
 import headwater.data.ColumnObserver;
 import headwater.data.IO;
 

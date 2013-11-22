@@ -9,7 +9,7 @@ import com.google.common.hash.Hashing;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
 import headwater.bitmap.AbstractBitmap;
 import headwater.bitmap.IBitmap;
-import headwater.bitmap.Utils;
+import headwater.util.Utils;
 import headwater.data.ColumnObserver;
 import headwater.data.IO;
 import headwater.data.KeyObserver;

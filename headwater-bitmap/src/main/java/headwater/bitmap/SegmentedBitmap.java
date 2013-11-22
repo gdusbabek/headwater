@@ -2,7 +2,7 @@ package headwater.bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
-import static headwater.bitmap.Utils.unbox;
+import static headwater.util.Utils.unbox;
 
 /** space efficient bitmap implmementation. todo: has concurrency issues that should be addressed */
 public class SegmentedBitmap extends AbstractBitmap {

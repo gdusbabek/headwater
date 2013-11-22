@@ -12,6 +12,8 @@
     <module>headwater-bitmap</module>
     <module>headwater-cassandra-bitmap</module>
     <module>headwater-index</module>
+    <module>headwater-data</module>
+    <module>headwater-common</module>
   </modules>
   
   <build>

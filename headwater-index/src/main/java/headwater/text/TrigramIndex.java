@@ -2,7 +2,7 @@ package headwater.text;
 
 import com.google.common.collect.Sets;
 import headwater.bitmap.BitmapFactory;
-import headwater.bitmap.Utils;
+import headwater.util.Utils;
 import headwater.data.Lookup;
 import headwater.data.MemoryKeyObserver;
 import headwater.hash.BitHashableKey;

@@ -9,22 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>headwater-bitmap</artifactId>
+  <artifactId>headwater-common</artifactId>
 
-  <dependencies>
-    
-    <dependency>
-      <groupId>headwater</groupId>
-      <artifactId>headwater-common</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>headwater</groupId>
-      <artifactId>headwater-data</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-    
-  </dependencies>
 
 </project>

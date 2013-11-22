@@ -1,4 +1,4 @@
-package headwater.bitmap;
+package headwater.util;
 
 import java.util.Random;
 
