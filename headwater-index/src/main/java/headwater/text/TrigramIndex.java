@@ -3,11 +3,12 @@ package headwater.text;
 import com.google.common.collect.Sets;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.Utils;
+import headwater.data.Lookup;
+import headwater.data.MemoryKeyObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
 import headwater.data.KeyObserver;
 import headwater.hash.Hashers;
-import headwater.data.MemoryKeyObserver;
 import headwater.index.BitmapIndex;
 import headwater.index.Filter;
 
@@ -20,12 +21,17 @@ import java.util.Set;
 public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private BitmapIndex<K, F, Trigram> index;
-    private KeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
+    private KeyObserver<K, F, String> keyObserver;
+    private Lookup<K, F, String> objectLookup;
     private FunnelHasher<K> keyHasher;
     
     public TrigramIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, long trigramHashBitLength) {
         index = new BitmapIndex<K, F, Trigram>(keyHasher, fieldHasher, Hashers.makeHasher(Trigram.class, trigramHashBitLength));
         this.keyHasher = keyHasher;
+
+        MemoryKeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
+        this.keyObserver = observer;
+        this.objectLookup = observer;
     }
     
     public TrigramIndex<K, F> withBitmapFactory(BitmapFactory factory) {
@@ -33,14 +39,19 @@ public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
         return this;
     }
     
-    public TrigramIndex<K, F> withIndexObserver(KeyObserver<K, F, String> observer) {
-        this.observer = observer;
+    public TrigramIndex<K, F> withKeyObserver(KeyObserver<K, F, String> observer) {
+        this.keyObserver = observer;
+        return this;
+    }
+    
+    public TrigramIndex<K, F> withObjectLookup(Lookup<K, F, String> lookup) {
+        this.objectLookup = lookup;
         return this;
     }
     
     public void add(K key, F field, String value) {
         BitHashableKey<K> bitKey = keyHasher.hashableKey(key);
-        observer.observe(bitKey, field, value);
+        keyObserver.observe(bitKey, field, value);
         for (Trigram trigram : Trigram.make(value))
             index.add(key, field, trigram);
     }
@@ -70,13 +81,13 @@ public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
         }
         
         
-        Set<K> keyCandidates = new HashSet<K>(observer.toKeys(Utils.unbox(candidates.toArray(new Long[candidates.size()]))));
+        Set<K> keyCandidates = new HashSet<K>(keyObserver.toKeys(Utils.unbox(candidates.toArray(new Long[candidates.size()]))));
         List<K> results = new ArrayList<K>();
         
         String regexQuery = ".*" + query.replace("*", ".*");
         for (K key: keyCandidates) {
-            String value = observer.lookup(key, field);// todo: here.
-            if (value.matches(regexQuery))
+            String value = objectLookup.lookup(key, field);
+            if (value != null && value.matches(regexQuery))
                 results.add(key);
         }
             

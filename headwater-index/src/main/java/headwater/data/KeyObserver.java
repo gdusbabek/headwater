@@ -7,7 +7,6 @@ import java.util.Collection;
 public interface KeyObserver<K, F, V> {
     public void observe(BitHashableKey<K> key, F field, V value);
     
-    public V lookup(K key, F field);
     public Collection<K> toKeys(long[] bits);
     public K toKey(long bit);
 }

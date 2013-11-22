@@ -13,6 +13,7 @@ import headwater.bitmap.Utils;
 import headwater.cassandra.ColumnObserver;
 import headwater.cassandra.IO;
 import headwater.data.KeyObserver;
+import headwater.data.Lookup;
 import headwater.data.MemoryKeyObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
@@ -36,12 +37,17 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private IO io;
     
-    private KeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
+    private KeyObserver<K, F, String> observer;
+    private Lookup<K, F, String> lookup;
     
     
     public CTrigramIndex(long numBits, int segmentBitLength) {
         this.numBits = new BigInteger(Long.toString(numBits));
         this.segmentBitLength = segmentBitLength;
+        
+        MemoryKeyObserver<K, F, String> dataAccess = new MemoryKeyObserver<K, F, String>();
+        this.observer = dataAccess;
+        this.lookup = dataAccess;
     }
     
     public CTrigramIndex<K, F> withIO(IO io) {
@@ -51,6 +57,11 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     public CTrigramIndex<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
+        return this;
+    }
+    
+    public CTrigramIndex<K, F> withLookup(Lookup<K, F, String> lookup) {
+        this.lookup = lookup;
         return this;
     }
     
@@ -100,8 +111,8 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
         // to candidates that we can run the regex against on a single machine.  This is what we do now.
         String regexQuery = query.replace("*", ".*");
         for (K key: keyCandidates) {
-            String value = observer.lookup(key, field);
-            if (value.matches(regexQuery))
+            String value = lookup.lookup(key, field);
+            if (value != null && value.matches(regexQuery))
                 results.add(key);
         }
         
