@@ -132,6 +132,7 @@ public class SegmentedBitmap extends AbstractBitmap {
         int index = getIndex(bit);
         if (maps[index] == null) {
             if (constructive)
+                // todo: using a specific implementation is bad!!!!
                 maps[index] = new JuBitmap(chunkBitLength);
             else
                 return null;
