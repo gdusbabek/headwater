@@ -11,6 +11,7 @@
   <modules>
     <module>headwater-bitmap</module>
     <module>headwater-cassandra-bitmap</module>
+    <module>headwater-index</module>
   </modules>
   
   <build>

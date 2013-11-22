@@ -10,6 +10,13 @@ public class Utils {
         return newarr;
     }
     
+    public static int[] unbox(Integer[] arr) {
+        int[] newarr = new int[arr.length];
+        for (int i = 0; i < newarr.length; i++)
+            newarr[i] = arr[i];
+        return newarr;
+    }
+    
     public static long bytesToLong(byte[] buf) {
         return (((long)buf[0] << 56) +
                 ((long)(buf[1] & 255) << 48) +
