@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128(543231);
+    public static final int KEY_HASH_BITS = 128;
     
     private static final Timer trigramTimer = Metrics.newTimer(CTrigramIndex.class, "trigram_index", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     private static final Timer observeTimer = Metrics.newTimer(CTrigramIndex.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
@@ -77,7 +78,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
 
         TimerContext serializeContext = indexSerializeTimer.time();
         // compute the bit to assert and the index row key.
-        final BitHashableKey<K> keyHash = ((FunnelHasher<K>)Hashers.makeHasher(key.getClass(), numBits.longValue())).hashableKey(key); 
+        final BitHashableKey<K> keyHash = ((FunnelHasher<K>)Hashers.makeHasher(key.getClass(), KEY_HASH_BITS)).hashableKey(key); 
         final long segment = keyHash.getHashBit() / segmentBitLength;
         final long bitInSegment = keyHash.getHashBit() % segmentBitLength;
         serializeContext.stop();

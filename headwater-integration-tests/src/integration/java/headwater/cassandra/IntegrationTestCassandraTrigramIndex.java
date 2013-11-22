@@ -16,8 +16,10 @@ import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.IOLookupObserver;
 import headwater.data.KeyObserver;
+import headwater.data.Lookup;
 import headwater.data.MemLookupObserver;
 import headwater.hash.BitHashableKey;
+import headwater.hash.Hashers;
 import headwater.text.AbstractTrigramIndexTest;
 import headwater.text.CTrigramIndex;
 import headwater.text.ITrigramIndex;
@@ -27,7 +29,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,14 +60,91 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
                         .withLookup(dataAccess);
     }
     
+    private void queryIndex() throws Exception {
+        File shakespeareDir = new File(System.getProperty("SHAKESPEARE_PATH"));
+        File[] listing = shakespeareDir.listFiles(new FileFilter() {
+            public boolean accept(File pathname) {
+                if (pathname.isHidden())
+                    return false;
+                if (pathname.getName().equals("glossary"))
+                    return false;
+                return true;
+            }
+        });
+        
+        final Map<Long, String> bitToKey = new HashMap<Long, String>();
+        final Map<String, String> lines = new HashMap<String, String>();
+        for (File file : listing) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            int lineNumber = 0;
+            String line = reader.readLine();
+            while (line != null) {
+                BitHashableKey<String> key = Hashers.makeHasher(String.class, CTrigramIndex.KEY_HASH_BITS).hashableKey(file.getName() + "_" + lineNumber);
+                lineNumber += 1;
+                bitToKey.put(key.getHashBit(), key.getKey());
+                lines.put(key.getKey(), line);
+                line = reader.readLine();
+            }
+        }
+        System.out.println("Built reverse bit index");
+        
+        
+        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(16777216, 8192)
+                .withIO(new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index"))
+                .withObserver(new KeyObserver<String, String, String>() {
+                    public void observe(BitHashableKey<String> key, String field, String value) {
+                        // not implemented.
+                    }
+
+                    public Collection<String> toKeys(long[] bits) {
+                        List<String> keys = new ArrayList<String>(bits.length);
+                        for (long bit : bits)
+                            keys.add(toKey(bit));
+                        return keys;
+                    }
+
+                    public String toKey(long bit) {
+                        return bitToKey.get(bit);
+                    }
+                })
+                .withLookup(new Lookup<String, String, String>() {
+                    public String lookup(String key, String field) {
+                        return lines.get(key);
+                    }
+                });
+        
+        String[] searchTerms = new String[] {
+                "*ale*",
+                "*anthropophaginian*",
+                "*ber*ask*", // looking for BERGOMASK
+                "*ent*tai*ent*", // looking for ENTERTAINMENT
+                "entertainment"
+        };
+        
+        for (String query : searchTerms) {
+            long start = System.currentTimeMillis();
+            Collection<String> resultKeys = index.globSearch("TEXT", query);
+            long end  = System.currentTimeMillis();
+            System.out.println(String.format("Query for \"%s\" took %d ms and had %d hits", query, (end-start), resultKeys.size()));
+            int count = 0;
+            for (String key : resultKeys) {
+                System.out.println(String.format("  %s -> %s", key, lines.get(key)));
+                if (++count >= 10) break;
+            }
+            System.out.println("");
+        }
+        
+    }
+    
     
     // CASSANDRA_HOME=/Users/gdusbabek/Downloads/apache-cassandra-1.2.9 /Users/gdusbabek/Downloads/apache-cassandra-cli < /Users/gdusbabek/codes/github/headwater/headwater-integration-tests/src/integration/resources/load.script
-    private void testPerformance() throws Exception {
+    private void buildIndex() throws Exception {
         
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(1073741824L, 4194304)
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(2097152L, 65536)
+//        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(2097152L, 65536)
+        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(16777216, 8192)
                 .withIO(io)
                 .withObserver(keyObserver)
                 .withLookup(keyObserver);
@@ -154,7 +236,8 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
             throw new RuntimeException("Please set SHAKESPEARE_PATH");
         
         try {
-            new IntegrationTestCassandraTrigramIndex().testPerformance();
+//            new IntegrationTestCassandraTrigramIndex().testPerformance();
+            new IntegrationTestCassandraTrigramIndex().queryIndex();
         } catch (Throwable th) {
             th.printStackTrace();
             System.exit(-1);
