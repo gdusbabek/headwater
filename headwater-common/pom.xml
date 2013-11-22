@@ -10,6 +10,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>headwater-common</artifactId>
+  <name>Headwater Common Components</name>
 
 
 </project>

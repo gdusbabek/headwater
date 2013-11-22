@@ -1,9 +1,10 @@
-package headwater.cassandra;
+package headwater.fun;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.netflix.astyanax.Serializer;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
+import headwater.data.CassSerializers;
 import headwater.data.ColumnObserver;
 import headwater.data.IO;
 
@@ -15,12 +16,12 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Naive map implementation backed by a cassandra row.
+ * Naive map implementation backed by a row of columns (cassandra)  This is just for fun.
  * 
  * @param <K> must be hashable and comparable!
  * @param <V> can be just about anything.
  */
-public class CassMap<K extends Comparable<K>, V> implements Map<K, V> {
+public class IOMap<K extends Comparable<K>, V> implements Map<K, V> {
     
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128(63342632);
     private static final byte[] SIZE = "size".getBytes();
@@ -31,7 +32,7 @@ public class CassMap<K extends Comparable<K>, V> implements Map<K, V> {
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
     
-    public CassMap(byte[] mapRowKey, Class<K> mapKeyType, Class<V> mapValueType, IO io) {
+    public IOMap(byte[] mapRowKey, Class<K> mapKeyType, Class<V> mapValueType, IO io) {
         this.io = io;
         this.mapRowKey = mapRowKey;
         this.keySerializer = CassSerializers.serializerFor(mapKeyType);

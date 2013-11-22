@@ -1,4 +1,4 @@
-package headwater.cassandra;
+package headwater.data;
 
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;

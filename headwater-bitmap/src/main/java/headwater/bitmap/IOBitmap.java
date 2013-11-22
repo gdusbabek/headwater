@@ -1,17 +1,17 @@
-package headwater.cassandra;
+package headwater.bitmap;
 
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
-import headwater.bitmap.AbstractBitmap;
 import headwater.util.Utils;
 import headwater.data.ColumnObserver;
 import headwater.data.IO;
 
+import java.io.IOError;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CBitmap extends AbstractBitmap {
+public class IOBitmap extends AbstractBitmap {
     
     private IO io;
     
@@ -19,7 +19,7 @@ public class CBitmap extends AbstractBitmap {
     private final int columnWidthInBits;
     private final byte[] key;
     
-    public CBitmap(byte[] key, long numBits, int columnWidthInBits, IO io) {
+    public IOBitmap(byte[] key, long numBits, int columnWidthInBits, IO io) {
         if (numBits % columnWidthInBits != 0)
             throw new IllegalArgumentException("numBits % columnWidthInBits != 0");
         if (columnWidthInBits % 8 != 0)
@@ -52,14 +52,12 @@ public class CBitmap extends AbstractBitmap {
                 curValue = new byte[columnWidthInBits / 8];
             }
             if (value)
-                flipOn(curValue, modBit);
+                Utils.flipOn(curValue, modBit);
             else
-                flipOff(curValue, modBit);
+                Utils.flipOff(curValue, modBit);
             io.put(key, col, curValue);
         } catch (Exception ex) {
-            // for now:
-            ex.printStackTrace();
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
     }
 
@@ -84,7 +82,7 @@ public class CBitmap extends AbstractBitmap {
             int bitInByte = modBit % 8;
             return (curValue[index] & (0x01 << bitInByte)) > 0;
         } catch (Exception ex) {
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
     }
 
@@ -105,7 +103,7 @@ public class CBitmap extends AbstractBitmap {
                 }
             });
         } catch (Exception ex) {
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
         return Utils.unbox(asserted.toArray(new Long[asserted.size()]));
     }
@@ -123,7 +121,7 @@ public class CBitmap extends AbstractBitmap {
                 }
             });
         } catch (Exception ex) {
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
     }
 
@@ -141,7 +139,7 @@ public class CBitmap extends AbstractBitmap {
                 }
             });
         } catch (Exception ex) {
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
         return empty.get();
     }
@@ -158,7 +156,7 @@ public class CBitmap extends AbstractBitmap {
                 }
             });
         } catch (Exception ex) {
-            throw new IndexOperationException(ex.getMessage(), ex);
+            throw new IOError(ex);
         }
         
         byte[] notPadded = new byte[size.get()];
@@ -202,22 +200,7 @@ public class CBitmap extends AbstractBitmap {
         } catch (Exception ex) {
             throw new RuntimeException("Error cloning bitmap", ex);
         }
-        return new CBitmap(newKey, numBits, columnWidthInBits, io);
+        return new IOBitmap(newKey, numBits, columnWidthInBits, io);
     }
 
-    //
-    //
-    //
-    
-    private static void flipOn(byte[] buf, int bit) {
-        int index = bit / 8;
-        int bitInByte = bit % 8;
-        buf[index] |= 0x01 << bitInByte;
-    }
-    
-    private static void flipOff(byte[] buf, int bit) {
-        int index = bit / 8;
-        int bitInByte = bit % 8;
-        buf[index] &= ~(0x01 << bitInByte);
-    }
 }

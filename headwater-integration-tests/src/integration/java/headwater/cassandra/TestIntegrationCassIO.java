@@ -1,6 +1,7 @@
 package headwater.cassandra;
 
 import headwater.data.AbstractIOTest;
+import headwater.data.CassandraIO;
 import org.junit.Before;
 
 

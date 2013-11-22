@@ -1,6 +1,6 @@
 package headwater.text;
 
-import headwater.bitmap.FakeCassandraIO;
+import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.MemoryKeyObserver;
 

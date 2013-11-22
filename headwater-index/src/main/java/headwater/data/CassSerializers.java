@@ -1,4 +1,4 @@
-package headwater.cassandra;
+package headwater.data;
 
 import com.netflix.astyanax.Serializer;
 import com.netflix.astyanax.serializers.AbstractSerializer;
@@ -41,10 +41,6 @@ public class CassSerializers {
             return (Serializer<T>) TRIGRAM_SERIALIZER;
         else
             throw new RuntimeException("Unexpected type: " + type.getClass().getName());
-    }
-    
-    public static Serializer typelessSerializerFor(Object o) {
-        return serializerFor(o.getClass());
     }
     
     private static class TrigramSerializer extends AbstractSerializer<Trigram> {

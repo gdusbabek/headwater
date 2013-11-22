@@ -1,6 +1,7 @@
-package headwater.bitmap;
+package headwater.data;
 
 import headwater.data.AbstractIOTest;
+import headwater.data.FakeCassandraIO;
 
 public class TestFakeCassandraIO extends AbstractIOTest {
 

@@ -48,4 +48,16 @@ public class Utils {
         rand.nextBytes(buf);
         return buf;
     }
+    
+    public static void flipOn(byte[] buf, int bit) {
+        int index = bit / 8;
+        int bitInByte = bit % 8;
+        buf[index] |= 0x01 << bitInByte;
+    }
+    
+    public static void flipOff(byte[] buf, int bit) {
+        int index = bit / 8;
+        int bitInByte = bit % 8;
+        buf[index] &= ~(0x01 << bitInByte);
+    }
 }

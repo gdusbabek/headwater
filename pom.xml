@@ -10,10 +10,10 @@
   <version>1.0.0-SNAPSHOT</version>
   <modules>
     <module>headwater-bitmap</module>
-    <module>headwater-cassandra-bitmap</module>
     <module>headwater-index</module>
     <module>headwater-data</module>
     <module>headwater-common</module>
+    <module>headwater-integration-tests</module>
   </modules>
   
   <build>

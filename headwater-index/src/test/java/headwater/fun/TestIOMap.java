@@ -1,6 +1,6 @@
-package headwater.bitmap;
+package headwater.fun;
 
-import headwater.cassandra.CassMap;
+import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class TestCassMap {
+public class TestIOMap {
     
     private static final String AS = "aaaaaaa";
     private static final String BS = "bbbbbbb";
@@ -29,7 +29,7 @@ public class TestCassMap {
     @Before
     public void setupMap() {
         io = new FakeCassandraIO();
-        map = new CassMap<Long, String>(new byte[]{0,0,0,0,1}, Long.class, String.class, io);
+        map = new IOMap<Long, String>(new byte[]{0,0,0,0,1}, Long.class, String.class, io);
         
         int numCols = 100;
         for (long L = 0; L < numCols; L++) {
@@ -56,8 +56,8 @@ public class TestCassMap {
     
     @Test
     public void testMetaRoKeysDoNotChange() {
-        CassMap<String, String> smap0 = new CassMap<String, String>(new byte[]{0}, String.class, String.class, io);
-        CassMap<String, String> smap1 = new CassMap<String, String>(new byte[]{0}, String.class, String.class, io);
+        IOMap<String, String> smap0 = new IOMap<String, String>(new byte[]{0}, String.class, String.class, io);
+        IOMap<String, String> smap1 = new IOMap<String, String>(new byte[]{0}, String.class, String.class, io);
         
         byte[] metaKey0 = (byte[])Whitebox.getInternalState(smap0, "mapMetaRowKey");
         byte[] metaKey1 = (byte[])Whitebox.getInternalState(smap1, "mapMetaRowKey");

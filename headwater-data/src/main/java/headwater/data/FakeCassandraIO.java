@@ -1,4 +1,4 @@
-package headwater.bitmap;
+package headwater.data;
 
 import com.google.common.primitives.UnsignedBytes;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
