@@ -122,7 +122,12 @@ public class Trigram implements Comparable<Trigram> {
     }
     
     /** create a bunch of trigrams. pad with zeros (0x00, not 0x30). */
+    
     public static Iterable<Trigram> make(String s) {
+        return make(s, null);
+    }
+    
+    public static Iterable<Trigram> make(String s, AugmentationStrategy augmentation) {
         List<Trigram> list = new ArrayList<Trigram>();
         Queue<Integer> buf = new LinkedList<Integer>();
         boolean waxing = true;
@@ -137,6 +142,12 @@ public class Trigram implements Comparable<Trigram> {
             }
             i += Character.charCount(cp);
         }
+        
+        if (list.size() == 0 && augmentation != null) {
+            for (Trigram trigram : augmentation.augment(s))
+                list.add(trigram);
+        }
+        
         return list;
     }
 }

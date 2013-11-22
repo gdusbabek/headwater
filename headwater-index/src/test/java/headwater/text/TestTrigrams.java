@@ -8,7 +8,10 @@ import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TestTrigrams {
     
@@ -203,6 +206,49 @@ public class TestTrigrams {
         Assert.assertTrue(foo.contains(""));
     }
     
+    @Test
+    public void testPadding() {
+        List<String> pads = new ArrayList<String>();
+        for (String pad : AsciiAugmentationStrategy.padding(1)) {
+            pads.add(pad);
+        }
+        
+        // a-z == 26.
+        Assert.assertEquals(26, pads.size());
+        
+        pads = new ArrayList<String>();
+        for (String pad : AsciiAugmentationStrategy.padding(2)) {
+            pads.add(pad);
+        }
+        
+        Assert.assertEquals(26 + 26 * 26, pads.size());
+    }
+    
+    @Test
+    public void testSingleAugmentation() {
+        Set<Trigram> trigrams = new HashSet<Trigram>();
+        int count = 0;
+        for (Trigram trigram : Trigram.make("fo", new AsciiAugmentationStrategy())) {
+            trigrams.add(trigram);
+            count += 1;
+        }
+        Assert.assertEquals(26 + 26, trigrams.size());
+        Assert.assertEquals(trigrams.size(), count);
+    }
+    
+    @Test
+    public void testDoubleAugmentation() {
+        Set<Trigram> trigrams = new HashSet<Trigram>();
+        int count = 0;
+        for (Trigram trigram : Trigram.make("z", new AsciiAugmentationStrategy())) {
+            trigrams.add(trigram);
+            count += 1;
+        }
+        
+        // minus 26 to account for the z*z duplicates.
+        Assert.assertEquals(26 * 26 * 2 - 26, trigrams.size());
+        Assert.assertEquals(trigrams.size(), count);
+    }
     // todo: need tests to make sure binary trigram create does indeed pad.
 }
 

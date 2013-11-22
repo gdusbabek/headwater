@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TrigramIndex<K, F>  {
+public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private BitmapIndex<K, F, Trigram> index;
     private DataAccess<K, F, String> observer = new MemoryDataAccess<K, F, String>();
@@ -45,7 +45,7 @@ public class TrigramIndex<K, F>  {
             index.add(key, field, trigram);
     }
     
-    public Collection<K> globSearch(F field, String query) throws Exception {
+    public Collection<K> globSearch(F field, String query)  {
         String[] parcels = query.split("\\*", 0);
         Set<Long> candidates = null;
         for (final String parcel : parcels) {
@@ -84,7 +84,7 @@ public class TrigramIndex<K, F>  {
         return results;
     }
     
-    private long[] trigramSearch(F field, String parcel) throws Exception {
+    private long[] trigramSearch(F field, String parcel) {
         Set<Long> candidates = new HashSet<Long>();
         for (Trigram trigram : Trigram.make(parcel)) {
             for (long hit : index.filter(field, trigram)) {
