@@ -10,8 +10,10 @@ public class SegmentedBitmap extends AbstractBitmap {
     
     // most significant maps are stored at the beginning.
     private final IBitmap[] maps;
+    private final BitmapFactory bitmapFactory;
     
-    public SegmentedBitmap(int bitLength, int chunkBitLength) {
+    
+    public SegmentedBitmap(int bitLength, int chunkBitLength, BitmapFactory bitmapFactory) {
         if (chunkBitLength % 8 != 0)
             throw new IllegalArgumentException("Chunk bit length should be evenly divisible by 8");
         if (bitLength % 8 != 0)
@@ -22,6 +24,7 @@ public class SegmentedBitmap extends AbstractBitmap {
         this.bitLength = bitLength;  
         this.chunkBitLength = chunkBitLength;
         this.maps = new IBitmap[bitLength / chunkBitLength];
+        this.bitmapFactory = bitmapFactory;
     }
 
     public void clear() {
@@ -68,7 +71,7 @@ public class SegmentedBitmap extends AbstractBitmap {
     }
 
     public Object clone()  {
-        SegmentedBitmap cl = new SegmentedBitmap(this.bitLength, this.chunkBitLength);
+        SegmentedBitmap cl = new SegmentedBitmap(this.bitLength, this.chunkBitLength, this.bitmapFactory);
         for (int i = 0; i < maps.length; i++)
             if (maps[i] != null)
                 cl.maps[i] = (IBitmap)maps[i].clone();
@@ -132,8 +135,7 @@ public class SegmentedBitmap extends AbstractBitmap {
         int index = getIndex(bit);
         if (maps[index] == null) {
             if (constructive)
-                // todo: using a specific implementation is bad!!!!
-                maps[index] = new JuBitmap(chunkBitLength);
+                maps[index] = bitmapFactory.newBitmap(chunkBitLength);
             else
                 return null;
         }

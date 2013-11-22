@@ -100,4 +100,10 @@ public class JuBitmap extends AbstractBitmap {
         BitSet bs = BitSet.valueOf(b);
         return new JuBitmap(bs, b.length * BITS_IN_BYTE);
     }
+    
+    public static final BitmapFactory FACTORY = new BitmapFactory() {
+        public IBitmap newBitmap(int numBits) {
+            return new JuBitmap(numBits);
+        }
+    };
 }

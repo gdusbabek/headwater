@@ -83,4 +83,10 @@ public class OpenBitmap extends AbstractBitmap {
         System.arraycopy(buf, byteStart, newBuf, 0, numBytes);
         return newBuf;
     }
+    
+    public static final BitmapFactory FACTORY = new BitmapFactory() {
+        public IBitmap newBitmap(int numBits) {
+            return new OpenBitmap(numBits); 
+        }
+    };
 }

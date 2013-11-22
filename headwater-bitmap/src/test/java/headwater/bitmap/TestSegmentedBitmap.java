@@ -1,42 +1,49 @@
 package headwater.bitmap;
 
 import junit.framework.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class TestSegmentedBitmap extends AbstractBitmapTest {
+@Ignore
+public abstract class TestSegmentedBitmap extends AbstractBitmapTest {
+    
+    protected BitmapFactory factory;
+    
+    public abstract void instantiateFactory();
     
     public void instantiate() {
-        x = new SegmentedBitmap(16, 8);
-        y = new SegmentedBitmap(16, 8);
-        wide = new SegmentedBitmap(32, 8);
-        padded = new SegmentedBitmap(16, 8);
-        setZero = new SegmentedBitmap(32, 8);
+        instantiateFactory();
+        x = new SegmentedBitmap(16, 8, factory);
+        y = new SegmentedBitmap(16, 8, factory);
+        wide = new SegmentedBitmap(32, 8, factory);
+        padded = new SegmentedBitmap(16, 8, factory);
+        setZero = new SegmentedBitmap(32, 8, factory);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalBitsetLength() {
-        new SegmentedBitmap(27, 8);
+        new SegmentedBitmap(27, 8, factory);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalChunkLength() {
-        new SegmentedBitmap(64, 7);
+        new SegmentedBitmap(64, 7, factory);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalEverything() {
-        new SegmentedBitmap(66, 7);
+        new SegmentedBitmap(66, 7, factory);
     }
     
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalDivision() {
         // both are divisible by 8, but you don't get an even number of chunks in 128 bits.
-        new SegmentedBitmap(128, 24);
+        new SegmentedBitmap(128, 24, factory);
     }
     
     @Test
     public void testWideChunks() {
-        IBitmap bm = new SegmentedBitmap(32, 16);
+        IBitmap bm = new SegmentedBitmap(32, 16, factory);
         byte[] buf;
         
         bm.clear();
