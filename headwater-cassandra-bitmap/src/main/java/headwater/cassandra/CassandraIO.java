@@ -2,6 +2,7 @@ package headwater.cassandra;
 
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
@@ -70,5 +71,9 @@ public class CassandraIO implements IO {
                 observer.observe(key, col.getName(), col.getByteArrayValue());
             }
         }
+    }
+
+    public void del(byte[] key, byte[] col) throws Exception {
+        keyspace.prepareColumnMutation(columnFamily, key, col).deleteColumn().execute();
     }
 }

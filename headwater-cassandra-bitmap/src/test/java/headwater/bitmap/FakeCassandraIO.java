@@ -45,4 +45,8 @@ public class FakeCassandraIO implements IO {
             observer.observe(key, entry.getKey(), entry.getValue());
         }
     }
+
+    public void del(byte[] key, byte[] col) throws Exception {
+        getRow(key).remove(col);
+    }
 }
