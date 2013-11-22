@@ -87,5 +87,9 @@ public class OpenBitmap extends AbstractBitmap {
         public IBitmap newBitmap(int numBits) {
             return new OpenBitmap(numBits); 
         }
+
+        public IBitmap newBitmap() {
+            return new OpenBitmap(128);
+        }
     };
 }

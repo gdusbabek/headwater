@@ -107,5 +107,9 @@ public class JuBitmap extends AbstractBitmap {
         public IBitmap newBitmap(int numBits) {
             return new JuBitmap(numBits);
         }
+
+        public IBitmap newBitmap() {
+            return new JuBitmap(128);
+        }
     };
 }
