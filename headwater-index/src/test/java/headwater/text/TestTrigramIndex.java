@@ -3,7 +3,7 @@ package headwater.text;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
-import headwater.data.MemoryKeyObserver;
+import headwater.data.MemLookupObserver;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
 
@@ -13,7 +13,7 @@ public class TestTrigramIndex extends AbstractTrigramIndexTest {
     public ITrigramIndex<String, String> makeIndex() {
         final int bits = 0x00100000;
         
-        MemoryKeyObserver<String, String, String> dataAccess = new MemoryKeyObserver<String, String, String>();
+        MemLookupObserver<String, String, String> dataAccess = new MemLookupObserver<String, String, String>();
         
         BitmapFactory bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {

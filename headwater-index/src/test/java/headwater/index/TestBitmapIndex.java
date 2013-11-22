@@ -9,7 +9,7 @@ import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
 import headwater.data.KeyObserver;
-import headwater.data.MemoryKeyObserver;
+import headwater.data.MemLookupObserver;
 import headwater.hash.Hashers;
 import junit.framework.Assert;
 import org.junit.Before;
@@ -29,7 +29,7 @@ public class TestBitmapIndex {
     @Before
     public void setUpHelpers() {
         final int numBits = 0x00100000; // 1 million bits.
-        observer = new MemoryKeyObserver<String, String, String>();
+        observer = new MemLookupObserver<String, String, String>();
         bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {
                 throw new RuntimeException("Not implemented");

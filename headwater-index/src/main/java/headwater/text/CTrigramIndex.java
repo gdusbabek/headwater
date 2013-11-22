@@ -14,7 +14,7 @@ import headwater.data.ColumnObserver;
 import headwater.data.IO;
 import headwater.data.KeyObserver;
 import headwater.data.Lookup;
-import headwater.data.MemoryKeyObserver;
+import headwater.data.MemLookupObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
@@ -45,7 +45,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
         this.numBits = new BigInteger(Long.toString(numBits));
         this.segmentBitLength = segmentBitLength;
         
-        MemoryKeyObserver<K, F, String> dataAccess = new MemoryKeyObserver<K, F, String>();
+        MemLookupObserver<K, F, String> dataAccess = new MemLookupObserver<K, F, String>();
         this.observer = dataAccess;
         this.lookup = dataAccess;
     }

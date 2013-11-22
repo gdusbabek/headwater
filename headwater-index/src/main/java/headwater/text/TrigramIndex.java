@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import headwater.bitmap.BitmapFactory;
 import headwater.util.Utils;
 import headwater.data.Lookup;
-import headwater.data.MemoryKeyObserver;
+import headwater.data.MemLookupObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
 import headwater.data.KeyObserver;
@@ -29,7 +29,7 @@ public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
         index = new BitmapIndex<K, F, Trigram>(keyHasher, fieldHasher, Hashers.makeHasher(Trigram.class, trigramHashBitLength));
         this.keyHasher = keyHasher;
 
-        MemoryKeyObserver<K, F, String> observer = new MemoryKeyObserver<K, F, String>();
+        MemLookupObserver<K, F, String> observer = new MemLookupObserver<K, F, String>();
         this.keyObserver = observer;
         this.objectLookup = observer;
     }

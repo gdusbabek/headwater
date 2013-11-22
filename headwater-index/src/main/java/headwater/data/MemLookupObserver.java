@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * You wouldn't want to use this IRL. You'd run into hash collisions as things fill up.
  */
-public class MemoryKeyObserver<K, F, V> implements KeyObserver<K, F, V> , Lookup<K, F, V>{
+public class MemLookupObserver<K, F, V> implements KeyObserver<K, F, V> , Lookup<K, F, V>{
     
     private final Map<Long, K> bitToKeys = new HashMap<Long, K>();
     private final Map<K, Map<F, V>> table = new HashMap<K, Map<F, V>>();
