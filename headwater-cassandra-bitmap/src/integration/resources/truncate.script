@@ -1,0 +1,2 @@
+use headwater;
+truncate my_data_index;

@@ -1,0 +1,19 @@
+
+create keyspace headwater
+    with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy'
+    and strategy_options = {replication_factor:1};
+
+use headwater;
+
+create column family my_data
+    with column_type='Standard'
+    and comparator='UTF8Type'
+    and key_validation_class='UTF8Type'
+    and default_validation_class='UTF8Type';
+
+create column family my_data_index
+    with column_type='Standard'
+    and comparator='BytesType'
+    and key_validation_class='BytesType'
+    and default_validation_class='BytesType';
+
