@@ -2,7 +2,6 @@ package headwater.cassandra;
 
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.Keyspace;
-import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
@@ -14,6 +13,8 @@ import com.netflix.astyanax.query.RowQuery;
 import com.netflix.astyanax.serializers.BytesArraySerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.RangeBuilder;
+import headwater.data.ColumnObserver;
+import headwater.data.IO;
 
 
 public class CassandraIO implements IO {

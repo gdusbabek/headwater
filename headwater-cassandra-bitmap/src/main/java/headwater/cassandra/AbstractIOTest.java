@@ -1,6 +1,8 @@
 package headwater.cassandra;
 
 import headwater.bitmap.Utils;
+import headwater.data.ColumnObserver;
+import headwater.data.IO;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

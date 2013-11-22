@@ -1,6 +1,7 @@
 package headwater.cassandra;
 
 import com.netflix.astyanax.Serializer;
+import headwater.data.IO;
 import headwater.data.KeyObserver;
 import headwater.hash.BitHashableKey;
 

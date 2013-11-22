@@ -1,8 +1,7 @@
 package headwater.text;
 
 import headwater.bitmap.FakeCassandraIO;
-import headwater.cassandra.IO;
-import headwater.data.KeyObserver;
+import headwater.data.IO;
 import headwater.data.MemoryKeyObserver;
 
 public class TestCTrigramIndex extends AbstractTrigramIndexTest {

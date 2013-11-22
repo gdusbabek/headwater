@@ -1,6 +1,7 @@
 package headwater.cassandra;
 
 import headwater.bitmap.AbstractBitmapTest;
+import headwater.data.IO;
 
 public class TestIntegrationCBitmap extends AbstractBitmapTest {
     

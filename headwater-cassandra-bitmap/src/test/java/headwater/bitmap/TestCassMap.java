@@ -1,7 +1,7 @@
 package headwater.bitmap;
 
 import headwater.cassandra.CassMap;
-import headwater.cassandra.IO;
+import headwater.data.IO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

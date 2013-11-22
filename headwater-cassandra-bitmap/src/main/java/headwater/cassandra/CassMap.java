@@ -4,6 +4,8 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.netflix.astyanax.Serializer;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
+import headwater.data.ColumnObserver;
+import headwater.data.IO;
 
 import java.util.Collection;
 import java.util.HashSet;

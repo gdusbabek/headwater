@@ -2,8 +2,8 @@ package headwater.bitmap;
 
 import com.google.common.primitives.UnsignedBytes;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
-import headwater.cassandra.ColumnObserver;
-import headwater.cassandra.IO;
+import headwater.data.ColumnObserver;
+import headwater.data.IO;
 
 import java.util.Map;
 import java.util.TreeMap;

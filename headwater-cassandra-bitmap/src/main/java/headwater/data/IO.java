@@ -1,4 +1,4 @@
-package headwater.cassandra;
+package headwater.data;
 
 public interface IO {
     public void put(byte[] key, byte[] col, byte[] value) throws Exception;
