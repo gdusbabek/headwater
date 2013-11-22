@@ -1,5 +1,8 @@
 package headwater.bitmap;
 
+/**
+ * relies on getBitLength(), getAsserted(), get(), clone()
+ */
 public abstract class AbstractBitmap implements IBitmap {
     
     public abstract Object clone();

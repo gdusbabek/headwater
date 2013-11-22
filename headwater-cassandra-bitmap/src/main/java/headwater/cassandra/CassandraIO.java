@@ -6,11 +6,16 @@ import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
 import com.netflix.astyanax.impl.AstyanaxConfigurationImpl;
+import com.netflix.astyanax.model.Column;
 import com.netflix.astyanax.model.ColumnFamily;
+import com.netflix.astyanax.model.ColumnList;
+import com.netflix.astyanax.query.RowQuery;
 import com.netflix.astyanax.serializers.BytesArraySerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
+import com.netflix.astyanax.util.RangeBuilder;
 
-public class CassandraIO {
+
+public class CassandraIO implements IO {
 
     private final Keyspace keyspace;
     private final ColumnFamily<byte[], byte[]> columnFamily;
@@ -48,5 +53,22 @@ public class CassandraIO {
                 .getKey(key)
                 .getColumn(col)
                 .execute().getResult().getByteArrayValue();
+    }
+    
+    // iterate over all columns, paging through data in a row.
+    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception {
+        
+        RowQuery<byte[], byte[]> query = keyspace
+                .prepareQuery(columnFamily)
+                .getKey(key)
+                .autoPaginate(true)
+                .withColumnRange(new RangeBuilder().setLimit(pageSize).build());
+        
+        ColumnList<byte[]> columnList;
+        while (!(columnList = query.execute().getResult()).isEmpty()) {
+            for (Column<byte[]> col : columnList) {
+                observer.observe(key, col.getName(), col.getByteArrayValue());
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package headwater.bitmap;
 
 import java.util.ArrayList;
 import java.util.List;
+import static headwater.bitmap.Utils.unbox;
 
 /** space efficient bitmap implmementation. todo: has concurrency issues that should be addressed */
 public class SegmentedBitmap extends AbstractBitmap {
@@ -122,13 +123,6 @@ public class SegmentedBitmap extends AbstractBitmap {
     //
     // helpers
     //
-    
-    private static long[] unbox(Long[] arr) {
-        long[] newarr = new long[arr.length];
-        for (int i = 0; i < newarr.length; i++)
-            newarr[i] = arr[i];
-        return newarr;
-    }
     
     // todo: a lot could be done to make this more concurrent. segmented locks would be a good first step.
     private synchronized IBitmap getSubmap(long bit, boolean constructive) {

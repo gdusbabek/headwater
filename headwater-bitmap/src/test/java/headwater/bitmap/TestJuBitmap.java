@@ -3,6 +3,7 @@ package headwater.bitmap;
 import junit.framework.Assert;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.BitSet;
 
 public class TestJuBitmap extends AbstractBitmapTest {
@@ -14,6 +15,14 @@ public class TestJuBitmap extends AbstractBitmapTest {
         wide = new JuBitmap(32);
         padded = new JuBitmap(16);
         setZero = new JuBitmap(32);
+    }
+    
+    @Test
+    public void bitties() {
+        byte x = 1;
+        for (int i = 0; i < 8; i++) {
+            x <<= 1;
+        }
     }
     
     @Test(expected = IllegalArgumentException.class)
