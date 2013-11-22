@@ -382,7 +382,7 @@ public class OpenBitSet implements Serializable, Cloneable {
   {
     long bitCount = 0L;
     for (int i=getPageCount();i-->0;)
-        bitCount+=BitUtil.pop_array(bits[i],0,wlen);
+        bitCount+=BitUtil.pop_array(bits[i],0,bits[i].length);
 
     return bitCount;
   }
