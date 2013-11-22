@@ -24,30 +24,29 @@ public class OpenBitmap extends AbstractBitmap {
         return clone;
     }
 
-    public int getBitLength() {
-        // todo: address in APIs.
-        return (int)this.numBits;
+    public long getBitLength() {
+        return this.numBits;
     }
 
-    public void set(int bit, boolean value) {
+    public void set(long bit, boolean value) {
         if (value)
-            bits.set((long)bit);
+            bits.set(bit);
         else
-            bits.clear((long)bit);
+            bits.clear(bit);
     }
 
-    public void set(int... bits) {
-        for (int bit : bits)
+    public void set(long... bits) {
+        for (long bit : bits)
             this.set(bit, true);
     }
 
-    public boolean get(int bit) {
-        return bits.get((long)bit);
+    public boolean get(long bit) {
+        return bits.get(bit);
     }
 
-    public int[] getAsserted() {
-        int[] asserted = new int[(int)bits.cardinality()];
-        int pos = 0;
+    public long[] getAsserted() {
+        long[] asserted = new long[(int)bits.cardinality()];
+        long pos = 0;
         int index = 0;
         while (index < asserted.length) {
             asserted[index] = bits.nextSetBit(pos);

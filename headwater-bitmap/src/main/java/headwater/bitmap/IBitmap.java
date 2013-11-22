@@ -3,18 +3,18 @@ package headwater.bitmap;
 public interface IBitmap extends Cloneable {
     
     /** number of bits in this map. */
-    public int getBitLength();
+    public long getBitLength();
     
     /** turn this bit on/off */
-    public void set(int bit, boolean value);
+    public void set(long bit, boolean value);
     
     /** assert these bits (convenience) */
-    public void set(int... bits);
+    public void set(long... bits);
     
-    public boolean get(int bit);
+    public boolean get(long bit);
     
     /** returns which bits are asserted */
-    public int[] getAsserted();
+    public long[] getAsserted();
     
     public void clear();
     

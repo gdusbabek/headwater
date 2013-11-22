@@ -6,6 +6,8 @@ import java.util.BitSet;
  * Composes a java.util.BetSet and exposes just the stuff I want.
  * Endianess is thus:
  * Hi..............Lo
+ * 
+ * Limited to Integer boundaries even though the IBitmap interface uses longs.
  */
 public class JuBitmap extends AbstractBitmap {
     
@@ -35,31 +37,31 @@ public class JuBitmap extends AbstractBitmap {
         return bits.isEmpty();
     }
 
-    public int getBitLength() { return size; }
+    public long getBitLength() { return size; }
     
-    public void set(int bit, boolean value) {
-        bits.set(bit, value);
+    public void set(long bit, boolean value) {
+        bits.set((int)bit, value);
     }
     
-    public void set(int... x) {
+    public void set(long... x) {
         for (int i = 0; i < x.length; i++)
-            bits.set(x[i], true);
+            bits.set((int)x[i], true);
     }
     
-    public int[] getAsserted() {
-        int[] asserted = new int[bits.cardinality()];
+    public long[] getAsserted() {
+        long[] asserted = new long[bits.cardinality()];
         int pos = 0;
-        int from = 0;
+        long from = 0;
         while (pos < asserted.length) {
-            asserted[pos] = bits.nextSetBit(from);
+            asserted[pos] = bits.nextSetBit((int)from);
             from = asserted[pos] + 1;
             pos += 1;
         }
         return asserted;
     }
 
-    public boolean get(int bit) {
-        return bits.get(bit);
+    public boolean get(long bit) {
+        return bits.get((int)bit);
     }
 
     // returns little endian representation. 

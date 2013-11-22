@@ -6,7 +6,7 @@ public abstract class AbstractBitmap implements IBitmap {
     
     public IBitmap mand(IBitmap other) {
         if (other.getBitLength() != this.getBitLength()) throw new IllegalArgumentException("Bitset lengths are not identical");
-        for (int i : getAsserted())
+        for (long i : getAsserted())
             set(i, other.get(i));
         return this;
     }
@@ -18,7 +18,7 @@ public abstract class AbstractBitmap implements IBitmap {
 
     public IBitmap mor(IBitmap other) {
         if (other.getBitLength() != this.getBitLength()) throw new IllegalArgumentException("Bitset lengths are not identical");
-        for (int i : other.getAsserted())
+        for (long i : other.getAsserted())
             set(i, true);
         return this;
     }

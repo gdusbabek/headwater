@@ -5,7 +5,7 @@ import java.util.List;
 
 /** space efficient bitmap implmementation. todo: has concurrency issues that should be addressed */
 public class SegmentedBitmap extends AbstractBitmap {
-    private final int bitLength;
+    private final long bitLength;
     private final int chunkBitLength;
     
     // most significant maps are stored at the beginning.
@@ -13,7 +13,7 @@ public class SegmentedBitmap extends AbstractBitmap {
     private final BitmapFactory bitmapFactory;
     
     
-    public SegmentedBitmap(int bitLength, int chunkBitLength, BitmapFactory bitmapFactory) {
+    public SegmentedBitmap(long bitLength, int chunkBitLength, BitmapFactory bitmapFactory) {
         if (chunkBitLength % 8 != 0)
             throw new IllegalArgumentException("Chunk bit length should be evenly divisible by 8");
         if (bitLength % 8 != 0)
@@ -23,7 +23,7 @@ public class SegmentedBitmap extends AbstractBitmap {
             
         this.bitLength = bitLength;  
         this.chunkBitLength = chunkBitLength;
-        this.maps = new IBitmap[bitLength / chunkBitLength];
+        this.maps = new IBitmap[(int)(bitLength / chunkBitLength)];
         this.bitmapFactory = bitmapFactory;
     }
 
@@ -40,31 +40,31 @@ public class SegmentedBitmap extends AbstractBitmap {
         return true;
     }
 
-    public int getBitLength() {
+    public long getBitLength() {
         return bitLength;
     }
 
-    public void set(int bit, boolean value) {
+    public void set(long bit, boolean value) {
         getSubmap(bit, true).set(getMod(bit), value);
     }
 
-    public void set(int... bits) {
-        for (int bit : bits)
+    public void set(long... bits) {
+        for (long bit : bits)
             set(bit, true);
     }
 
-    public int[] getAsserted() {
-        List<Integer> list = new ArrayList<Integer>();
+    public long[] getAsserted() {
+        List<Long> list = new ArrayList<Long>();
         for (int index = 0; index < maps.length; index++) {
             if (maps[index] != null) {
-                for (int asserted : maps[index].getAsserted())
+                for (long asserted : maps[index].getAsserted())
                     list.add(index * chunkBitLength + asserted);
             }
         }
-        return unbox(list.toArray(new Integer[list.size()]));
+        return unbox(list.toArray(new Long[list.size()]));
     }
 
-    public boolean get(int bit) {
+    public boolean get(long bit) {
         IBitmap map = maps[getIndex(bit)];
         if (map == null) return false;
         else return map.get(getMod(bit));
@@ -80,7 +80,7 @@ public class SegmentedBitmap extends AbstractBitmap {
 
     // most significant bytes at the end, least significant bytes first.
     public byte[] toBytes() {
-        byte[] buf = new byte[bitLength / 8];
+        byte[] buf = new byte[(int)(bitLength / 8)];
         byte[] sub;
         for (int index = 0; index < maps.length; index++) {
             int copyPos = index * (chunkBitLength / 8);
@@ -123,15 +123,15 @@ public class SegmentedBitmap extends AbstractBitmap {
     // helpers
     //
     
-    private static int[] unbox(Integer[] arr) {
-        int[] newarr = new int[arr.length];
+    private static long[] unbox(Long[] arr) {
+        long[] newarr = new long[arr.length];
         for (int i = 0; i < newarr.length; i++)
             newarr[i] = arr[i];
         return newarr;
     }
     
     // todo: a lot could be done to make this more concurrent. segmented locks would be a good first step.
-    private synchronized IBitmap getSubmap(int bit, boolean constructive) {
+    private synchronized IBitmap getSubmap(long bit, boolean constructive) {
         int index = getIndex(bit);
         if (maps[index] == null) {
             if (constructive)
@@ -142,15 +142,15 @@ public class SegmentedBitmap extends AbstractBitmap {
         return maps[index];
     }
     
-    private int getIndex(int bit) {
-        return bit / chunkBitLength;
+    private int getIndex(long bit) {
+        return (int)(bit / chunkBitLength);
     }
     
-    private int getMod(int bit) {
-        return bit % chunkBitLength;
+    private int getMod(long bit) {
+        return (int)(bit % chunkBitLength);
     }
     
-    private int unMod(int nth, int index) {
+    private long unMod(int nth, int index) {
         return nth * chunkBitLength + index;
     }
 }

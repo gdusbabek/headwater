@@ -43,28 +43,28 @@ public abstract class AbstractBitmapTest {
     
     @Test
     public void testGetAsserted() {
-        Assert.assertTrue(arrayEquals(new int[]{0, 3}, x.getAsserted()));
-        Assert.assertTrue(arrayEquals(new int[]{3, 7}, y.getAsserted()));
-        Assert.assertTrue(arrayEquals(new int[]{0, 1, 31}, wide.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{0, 3}, x.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{3, 7}, y.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{0, 1, 31}, wide.getAsserted()));
     }
     
     @Test
     public void testAndNoMutate() {
         IBitmap and = x.and(y);
         
-        Assert.assertTrue(arrayEquals(new int[]{0, 3}, x.getAsserted()));
-        Assert.assertTrue(arrayEquals(new int[]{3, 7}, y.getAsserted()));
-        Assert.assertTrue(arrayEquals(new int[]{3}, and.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{0, 3}, x.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{3, 7}, y.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{3}, and.getAsserted()));
     }
     
     @Test
     public void testOrNoMutate() {
         IBitmap or = x.or(y);
         
-        Assert.assertTrue(arrayEquals(new int[]{0, 3}, x.getAsserted()));
-        Assert.assertTrue(arrayEquals(new int[]{3, 7}, y.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{0, 3}, x.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{3, 7}, y.getAsserted()));
         // order isn't important, so the expected should be randomized and we should do a set compares.
-        Assert.assertTrue(arrayEquals(new int[]{0, 3, 7}, or.getAsserted()));
+        Assert.assertTrue(arrayEquals(new long[]{0, 3, 7}, or.getAsserted()));
     }
     
     // least significant bytes first.
@@ -188,7 +188,7 @@ public abstract class AbstractBitmapTest {
         Assert.assertEquals(0, setZero.toBytes()[3]);  
     }
     
-    public static boolean arrayEquals(int[] x, int[] y) {
+    public static boolean arrayEquals(long[] x, long[] y) {
         if (x.length != y.length) return false;
         for (int i = 0; i < x.length; i++)
             if (x[i] != y[i])
