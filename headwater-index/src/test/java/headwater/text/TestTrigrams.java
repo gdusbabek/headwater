@@ -7,9 +7,33 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class TestTrigrams {
+    
+    @Test
+    public void testByteufferAssumptions() {
+        byte[] buf = new byte[]{0,11,22,33,44,55,66,77,88,99};
+        
+        final ByteBuffer bb = ByteBuffer.wrap(buf, 2, 5);
+        
+        Runnable dumper = new Runnable() { public void run() {
+            System.out.println("pos: " + bb.position());
+            System.out.println("ao : " + bb.arrayOffset());
+            System.out.println("lim: " + bb.limit());
+            System.out.println("cap: " + bb.capacity());
+            System.out.println("");
+        }};
+        
+        dumper.run();
+        
+        bb.get();
+        bb.get();
+        
+        dumper.run();
+        
+    }
     
     @Test
     public void testToString() {

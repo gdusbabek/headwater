@@ -5,6 +5,7 @@ import headwater.bitmap.Utils;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,11 +35,18 @@ public class Trigram implements Comparable<Trigram> {
     }
     
     // ACHTUNG! raw construction!!!
-    private Trigram(byte[] buf, int start) {
+    private Trigram(byte[] buf, int start, int length) {
         System.arraycopy(buf, start, this.buf, 0, Math.min(WIDTH_IN_BYTES, buf.length - start));
         // assume we get the zeros at the end for free.
         for (int i = 0; i < N; i++)
             this.ints[i] = readInt(buf, i * 4);
+    }
+    
+    public static Trigram fromBuffer(ByteBuffer bb) {
+        int limit = bb.limit();
+        int pos = bb.position();
+        bb.position(limit); // indicates we used those bytes.
+        return new Trigram(bb.array(), pos, limit - pos);
     }
 
     @Override
@@ -82,6 +90,10 @@ public class Trigram implements Comparable<Trigram> {
         sink.putBytes(buf);
     }
     
+    public static ByteBuffer toBuffer(Trigram t) {
+        return ByteBuffer.allocate(t.buf.length).put(t.buf);
+    }
+    
     public String toString() {
         // there are N 4byte chars here.
         // convert each byte to a code point, each codepoint to char.
@@ -104,7 +116,7 @@ public class Trigram implements Comparable<Trigram> {
     public static Iterable<Trigram> make(byte[] bytes) {
         List<Trigram> list = new ArrayList<Trigram>();
         for (int i = 0; i < bytes.length; i += N)
-            list.add(new Trigram(bytes, i));
+            list.add(new Trigram(bytes, i, N));
         // stragglers get handled in the constructor.
         return list;
     }
