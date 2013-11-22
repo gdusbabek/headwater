@@ -15,7 +15,10 @@ create column family my_data_trigram_index
     with column_type='Standard'
     and comparator='BytesType'
     and key_validation_class='BytesType'
-    and default_validation_class='BytesType';
+    and default_validation_class='BytesType'
+    and compaction_strategy=LeveledCompactionStrategy
+    and compaction_strategy_options={sstable_size_in_mb:256};
+    
     
 create column family my_lookup_data
     with column_type='Standard'

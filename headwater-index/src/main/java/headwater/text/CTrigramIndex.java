@@ -7,6 +7,9 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.TimerContext;
 import headwater.bitmap.AbstractBitmap;
 import headwater.bitmap.IBitmap;
 import headwater.util.Utils;
@@ -26,10 +29,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128(543231);
+    
+    private static final Timer trigramTimer = Metrics.newTimer(CTrigramIndex.class, "trigram_index", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer observeTimer = Metrics.newTimer(CTrigramIndex.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer indexSerializeTimer = Metrics.newTimer(CTrigramIndex.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     
     // number of bits in the entire index (not each segment). this can be a very big number.
     private final BigInteger numBits;
@@ -66,18 +74,25 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     }
     
     public void add(K key, F field, String value) {
-        
+
+        TimerContext serializeContext = indexSerializeTimer.time();
         // compute the bit to assert and the index row key.
         final BitHashableKey<K> keyHash = ((FunnelHasher<K>)Hashers.makeHasher(key.getClass(), numBits.longValue())).hashableKey(key); 
         final long segment = keyHash.getHashBit() / segmentBitLength;
         final long bitInSegment = keyHash.getHashBit() % segmentBitLength;
+        serializeContext.stop();
         
+        TimerContext observeContext = observeTimer.time();
         observer.observe(keyHash, field, value);
+        observeContext.stop();
         
         // now assert that bit for each trigram we are indexing.
+        
         for (Trigram trigram :Trigram.make(value)) {
+            TimerContext trigramContext = trigramTimer.time();
             byte[] indexKey = computeIndexRowKey(field, trigram);
-            getSegment(indexKey, segment).set(bitInSegment);    
+            getSegment(indexKey, segment).set(bitInSegment, true);  
+            trigramContext.stop();
         }
     }
     
