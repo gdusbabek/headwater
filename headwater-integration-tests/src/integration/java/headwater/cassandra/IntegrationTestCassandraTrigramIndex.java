@@ -6,7 +6,7 @@ import headwater.data.IO;
 import headwater.data.IOLookupObserver;
 
 import headwater.text.AbstractTrigramIndexTest;
-import headwater.text.CTrigramIndex;
+import headwater.text.IOTrigramIndex;
 
 
 public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTest {
@@ -26,7 +26,7 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         );
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        IO io = new FakeCassandraIO();
-        CTrigramIndex<String, String> index =  new CTrigramIndex<String, String>(1073741824L, 4194304)
+        IOTrigramIndex<String, String> index =  new IOTrigramIndex<String, String>(1073741824L, 4194304)
                         .withIO(io)
                         .withObserver(dataAccess)
                         .withLookup(dataAccess);

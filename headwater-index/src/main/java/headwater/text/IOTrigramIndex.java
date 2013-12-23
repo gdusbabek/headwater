@@ -33,17 +33,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class CTrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter<K, F> {
+public class IOTrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter<K, F> {
     
-    private static final Logger log = LoggerFactory.getLogger(CTrigramIndex.class);
+    private static final Logger log = LoggerFactory.getLogger(IOTrigramIndex.class);
     
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128(543231);
     
-    private static final Timer trigramTimer = Metrics.newTimer(CTrigramIndex.class, "trigram_index", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer segmentLookupTimer = Metrics.newTimer(CTrigramIndex.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer segmentSetTimer = Metrics.newTimer(CTrigramIndex.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer observeTimer = Metrics.newTimer(CTrigramIndex.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer indexSerializeTimer = Metrics.newTimer(CTrigramIndex.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer trigramTimer = Metrics.newTimer(IOTrigramIndex.class, "trigram_index", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer segmentLookupTimer = Metrics.newTimer(IOTrigramIndex.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer segmentSetTimer = Metrics.newTimer(IOTrigramIndex.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer observeTimer = Metrics.newTimer(IOTrigramIndex.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer indexSerializeTimer = Metrics.newTimer(IOTrigramIndex.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     
     // number of bits in the entire index (not each segment). this can be a very big number.
     private final BigInteger numBits;
@@ -55,7 +55,7 @@ public class CTrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter
     private Lookup<K, F, String> lookup;
     
     
-    public CTrigramIndex(long numBits, int segmentBitLength) {
+    public IOTrigramIndex(long numBits, int segmentBitLength) {
         this.numBits = new BigInteger(Long.toString(numBits));
         this.segmentBitLength = segmentBitLength;
         
@@ -64,17 +64,17 @@ public class CTrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter
         this.lookup = dataAccess;
     }
     
-    public CTrigramIndex<K, F> withIO(IO io) {
+    public IOTrigramIndex<K, F> withIO(IO io) {
         this.io = io;
         return this;
     }
     
-    public CTrigramIndex<K, F> withObserver(KeyObserver<K, F, String> observer) {
+    public IOTrigramIndex<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }
     
-    public CTrigramIndex<K, F> withLookup(Lookup<K, F, String> lookup) {
+    public IOTrigramIndex<K, F> withLookup(Lookup<K, F, String> lookup) {
         this.lookup = lookup;
         return this;
     }

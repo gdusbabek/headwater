@@ -107,7 +107,7 @@ public abstract class AbstractTrigramIndexTest {
         }
         System.out.println("Built reverse bit index");
         
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(numBits, 8192)
+        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(numBits, 8192)
                 .withIO(io)
                 .withObserver(new KeyObserver<String, String, String>() {
                     public void observe(BitHashableKey<String> key, String field, String value) {
@@ -159,7 +159,7 @@ public abstract class AbstractTrigramIndexTest {
         
         final long numBits = 16777216;
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(numBits, 8192)
+        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(numBits, 8192)
                 .withIO(io)
                 .withObserver(keyObserver)
                 .withLookup(keyObserver);

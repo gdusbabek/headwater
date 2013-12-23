@@ -12,7 +12,7 @@ public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
         IO io = new FakeCassandraIO();
         // a 1Gbit index with 4Mbit segments.
         // those are huge segments fwiw.
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(1073741824L, 4194304)
+        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess)
                 .withLookup(dataAccess);
