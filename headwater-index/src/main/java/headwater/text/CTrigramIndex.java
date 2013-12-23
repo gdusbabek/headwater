@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
+public class CTrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter<K, F> {
     
     private static final Logger log = LoggerFactory.getLogger(CTrigramIndex.class);
     

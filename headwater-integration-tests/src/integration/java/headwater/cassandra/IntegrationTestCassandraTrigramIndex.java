@@ -1,46 +1,18 @@
 package headwater.cassandra;
 
-import com.netflix.astyanax.connectionpool.exceptions.OperationTimeoutException;
-import com.netflix.astyanax.serializers.LongSerializer;
 import com.netflix.astyanax.serializers.StringSerializer;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Metric;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.MetricPredicate;
-import com.yammer.metrics.core.MetricsRegistry;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.stats.Snapshot;
-import headwater.data.CassSerializers;
 import headwater.data.CassandraIO;
-import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.IOLookupObserver;
-import headwater.data.KeyObserver;
-import headwater.data.Lookup;
-import headwater.data.MemLookupObserver;
-import headwater.hash.BitHashableKey;
-import headwater.hash.Hashers;
+
 import headwater.text.AbstractTrigramIndexTest;
 import headwater.text.CTrigramIndex;
-import headwater.text.ITrigramIndex;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTest {
 
     @Override
-    public ITrigramIndex<String, String> makeIndex() {
+    public void setReaderAndWriter() {
         
         IOLookupObserver<String, String, String> dataAccess = new IOLookupObserver<String, String, String>(
                 new CassandraIO("127.0.0.1", 9160, "headwater", "my_lookup_data"),
@@ -54,10 +26,12 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         );
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        IO io = new FakeCassandraIO();
-        return new CTrigramIndex<String, String>(1073741824L, 4194304)
+        CTrigramIndex<String, String> index =  new CTrigramIndex<String, String>(1073741824L, 4194304)
                         .withIO(io)
                         .withObserver(dataAccess)
                         .withLookup(dataAccess);
+        this.reader = index;
+        this.writer = index;
     }
 
     public static void main(String args[]) {

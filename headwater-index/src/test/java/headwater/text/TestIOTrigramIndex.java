@@ -5,19 +5,21 @@ import headwater.data.IO;
 import headwater.data.MemLookupObserver;
 
 public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
-    
+
     @Override
-    public ITrigramIndex<String, String> makeIndex() {
-        
+    public void setReaderAndWriter() {
         MemLookupObserver<String, String, String> dataAccess = new MemLookupObserver<String, String, String>();
         IO io = new FakeCassandraIO();
         // a 1Gbit index with 4Mbit segments.
         // those are huge segments fwiw.
-        return new CTrigramIndex<String, String>(1073741824L, 4194304)
+        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess)
                 .withLookup(dataAccess);
+        this.reader = index;
+        this.writer = index;
     }
+
     
     public static void main(String args[]) {        
         if (System.getProperty("SHAKESPEARE_PATH") == null)

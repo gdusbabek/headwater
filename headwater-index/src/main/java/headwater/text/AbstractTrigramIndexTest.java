@@ -35,41 +35,44 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractTrigramIndexTest {
     
-    private ITrigramIndex<String, String> trigramIndex;
     
-    public abstract ITrigramIndex<String, String> makeIndex();
+    protected ITrigramReader<String, String> reader;
+    protected ITrigramWriter<String, String> writer;
+    
+    public abstract void setReaderAndWriter();
     
     @Before
     public final void setupStuff() {
-        trigramIndex = makeIndex();
+        setReaderAndWriter();
         
-        Assert.assertNotNull(trigramIndex);
+        Assert.assertNotNull(reader);
+        Assert.assertNotNull(writer);
         
-        trigramIndex.add("0", "0", "aaabbbccc");
-        trigramIndex.add("1", "0", "bbbcccddd");
-        trigramIndex.add("2", "0", "cccdddeee");
-        trigramIndex.add("3", "0", "dddeeefff");
-        trigramIndex.add("4", "0", "eeefffggg");
-        trigramIndex.add("5", "0", "fffggghhh");
+        writer.add("0", "0", "aaabbbccc");
+        writer.add("1", "0", "bbbcccddd");
+        writer.add("2", "0", "cccdddeee");
+        writer.add("3", "0", "dddeeefff");
+        writer.add("4", "0", "eeefffggg");
+        writer.add("5", "0", "fffggghhh");
     }
     
     @Test
     public void testSimple() throws Exception {
         
-        Assert.assertTrue(trigramIndex.globSearch("0", "*bbb*").size() > 0);
+        Assert.assertTrue(reader.globSearch("0", "*bbb*").size() > 0);
         
-        Assert.assertEquals(Sets.newHashSet("0", "1"), Sets.newHashSet(trigramIndex.globSearch("0", "*b*c*"))); // .*b.*c.*
-        Assert.assertEquals(Sets.newHashSet("2", "1"), Sets.newHashSet(trigramIndex.globSearch("0", "*cd*"))); // .*cd.*
-        Assert.assertEquals(Sets.newHashSet("0", "1"), Sets.newHashSet(trigramIndex.globSearch("0", "*bbbc*"))); // .*bbbc.*
-        Assert.assertEquals(Sets.newHashSet("3"), Sets.newHashSet(trigramIndex.globSearch("0", "*ddde*eef*"))); // .*ddde.*eef.*
+        Assert.assertEquals(Sets.newHashSet("0", "1"), Sets.newHashSet(reader.globSearch("0", "*b*c*"))); // .*b.*c.*
+        Assert.assertEquals(Sets.newHashSet("2", "1"), Sets.newHashSet(reader.globSearch("0", "*cd*"))); // .*cd.*
+        Assert.assertEquals(Sets.newHashSet("0", "1"), Sets.newHashSet(reader.globSearch("0", "*bbbc*"))); // .*bbbc.*
+        Assert.assertEquals(Sets.newHashSet("3"), Sets.newHashSet(reader.globSearch("0", "*ddde*eef*"))); // .*ddde.*eef.*
         
         // an out-of-order that should not work
-        Assert.assertEquals(0, trigramIndex.globSearch("0", "*c*b*").size());
+        Assert.assertEquals(0, reader.globSearch("0", "*c*b*").size());
     }
     
     @Test
     public void testLargeSubstring() {
-        Assert.assertTrue(trigramIndex.globSearch("0", "*ccdddee*").size() > 0);
+        Assert.assertTrue(reader.globSearch("0", "*ccdddee*").size() > 0);
     }
     
     // for testing other things...

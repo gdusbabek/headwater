@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TrigramIndex<K, F> implements ITrigramIndex<K, F> {
+public class TrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter<K, F> {
     
     private BitmapIndex<K, F, Trigram> index;
     private KeyObserver<K, F, String> keyObserver;
