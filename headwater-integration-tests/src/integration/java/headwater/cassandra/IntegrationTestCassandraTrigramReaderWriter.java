@@ -5,11 +5,12 @@ import headwater.data.CassandraIO;
 import headwater.data.IO;
 import headwater.data.IOLookupObserver;
 
-import headwater.text.AbstractTrigramIndexTest;
-import headwater.text.IOTrigramIndex;
+import headwater.text.AbstractTrigramReaderWriterTest;
+import headwater.text.IOTrigramReader;
+import headwater.text.IOTrigramWriter;
 
 
-public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTest {
+public class IntegrationTestCassandraTrigramReaderWriter extends AbstractTrigramReaderWriterTest {
 
     @Override
     public void setReaderAndWriter() {
@@ -26,12 +27,13 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         );
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        IO io = new FakeCassandraIO();
-        IOTrigramIndex<String, String> index =  new IOTrigramIndex<String, String>(1073741824L, 4194304)
+        this.reader =  new IOTrigramReader<String, String>(1073741824L, 4194304)
                         .withIO(io)
                         .withObserver(dataAccess)
                         .withLookup(dataAccess);
-        this.reader = index;
-        this.writer = index;
+        this.writer = new IOTrigramWriter<String, String>(1073741824L, 4194304)
+                .withIO(io)
+                .withObserver(dataAccess);
     }
 
     public static void main(String args[]) {
@@ -41,8 +43,8 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
         try {
-            new IntegrationTestCassandraTrigramIndex().buildIndex(io);
-            new IntegrationTestCassandraTrigramIndex().queryIndex(io);
+            new IntegrationTestCassandraTrigramReaderWriter().buildIndex(io);
+            new IntegrationTestCassandraTrigramReaderWriter().queryIndex(io);
         } catch (Throwable th) {
             th.printStackTrace();
             System.exit(-1);

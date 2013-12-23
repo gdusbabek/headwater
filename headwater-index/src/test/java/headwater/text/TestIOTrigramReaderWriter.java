@@ -4,7 +4,7 @@ import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.MemLookupObserver;
 
-public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
+public class TestIOTrigramReaderWriter extends AbstractTrigramReaderWriterTest {
 
     @Override
     public void setReaderAndWriter() {
@@ -12,12 +12,13 @@ public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
         IO io = new FakeCassandraIO();
         // a 1Gbit index with 4Mbit segments.
         // those are huge segments fwiw.
-        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(1073741824L, 4194304)
+        this.reader = new IOTrigramReader<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess)
                 .withLookup(dataAccess);
-        this.reader = index;
-        this.writer = index;
+        this.writer = new IOTrigramWriter<String, String>(1073741824L, 4194304)
+                .withIO(io)
+                .withObserver(dataAccess);
     }
 
     
@@ -27,8 +28,8 @@ public class TestIOTrigramIndex extends AbstractTrigramIndexTest {
         
         IO io = new FakeCassandraIO();
         try {
-            new TestIOTrigramIndex().buildIndex(io);
-            new TestIOTrigramIndex().queryIndex(io);
+            new TestIOTrigramReaderWriter().buildIndex(io);
+            new TestIOTrigramReaderWriter().queryIndex(io);
         } catch (Throwable th) {
             th.printStackTrace();
             System.exit(-1);

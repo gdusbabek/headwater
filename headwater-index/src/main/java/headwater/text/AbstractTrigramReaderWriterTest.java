@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractTrigramIndexTest {
+public abstract class AbstractTrigramReaderWriterTest {
     
     
     protected ITrigramReader<String, String> reader;
@@ -107,7 +107,7 @@ public abstract class AbstractTrigramIndexTest {
         }
         System.out.println("Built reverse bit index");
         
-        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(numBits, 8192)
+        IOTrigramReader<String, String> index = new IOTrigramReader<String, String>(numBits, 8192)
                 .withIO(io)
                 .withObserver(new KeyObserver<String, String, String>() {
                     public void observe(BitHashableKey<String> key, String field, String value) {
@@ -159,10 +159,9 @@ public abstract class AbstractTrigramIndexTest {
         
         final long numBits = 16777216;
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
-        IOTrigramIndex<String, String> index = new IOTrigramIndex<String, String>(numBits, 8192)
+        IOTrigramWriter<String, String> index = new IOTrigramWriter<String, String>(numBits, 8192)
                 .withIO(io)
-                .withObserver(keyObserver)
-                .withLookup(keyObserver);
+                .withObserver(keyObserver);
 
         File shakespeareDir = new File(System.getProperty("SHAKESPEARE_PATH"));
         File[] listing = shakespeareDir.listFiles(new FileFilter() {
