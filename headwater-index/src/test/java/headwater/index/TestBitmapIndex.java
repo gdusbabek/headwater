@@ -8,7 +8,6 @@ import com.google.common.hash.Hashing;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.OpenBitmap;
-import headwater.data.KeyObserver;
 import headwater.data.MemLookupObserver;
 import headwater.hash.Hashers;
 import junit.framework.Assert;
@@ -23,13 +22,13 @@ import java.util.Set;
 
 public class TestBitmapIndex {
     
-    private KeyObserver<String, String, String> observer;
+    private MemLookupObserver<String, String, String> observerAndLookup;
     private BitmapFactory bitmapFactory;
     
     @Before
     public void setUpHelpers() {
         final int numBits = 0x00100000; // 1 million bits.
-        observer = new MemLookupObserver<String, String, String>();
+        observerAndLookup = new MemLookupObserver<String, String, String>();
         bitmapFactory = new BitmapFactory() {
             public IBitmap newBitmap(int numBits) {
                 throw new RuntimeException("Not implemented");
@@ -70,7 +69,8 @@ public class TestBitmapIndex {
                 Hashers.makeHasher(String.class, bits), 
                 Hashers.makeHasher(String.class, bits))
             .withBitmapFactory(bitmapFactory)
-            .withObserver(observer);
+            .withObserver(observerAndLookup)
+            .withLookup(observerAndLookup);
         
         index.add("row 0", "col 0", "foo");
         index.add("row 1", "col 0", "bar");
@@ -105,7 +105,8 @@ public class TestBitmapIndex {
                 Hashers.makeHasher(String.class, bits), 
                 Hashers.makeHasher(String.class, bits))
                 .withBitmapFactory(bitmapFactory)
-                .withObserver(observer);
+                .withObserver(observerAndLookup)
+                .withLookup(observerAndLookup);
         
         index.add("0", "0", "aaa");
         index.add("1", "0", "aaa");

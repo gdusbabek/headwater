@@ -113,6 +113,11 @@ public abstract class AbstractTrigramReaderWriterTest {
                     public void observe(BitHashableKey<String> key, String field, String value) {
                         // not implemented.
                     }
+                })
+                .withLookup(new Lookup<String, String, String>() {
+                    public String lookup(String key, String field) {
+                        return lines.get(key);
+                    }
 
                     public Collection<String> toKeys(long[] bits) {
                         List<String> keys = new ArrayList<String>(bits.length);
@@ -123,11 +128,6 @@ public abstract class AbstractTrigramReaderWriterTest {
 
                     public String toKey(long bit) {
                         return bitToKey.get(bit);
-                    }
-                })
-                .withLookup(new Lookup<String, String, String>() {
-                    public String lookup(String key, String field) {
-                        return lines.get(key);
                     }
                 });
         

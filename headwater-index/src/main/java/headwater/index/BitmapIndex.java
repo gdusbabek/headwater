@@ -3,6 +3,7 @@ package headwater.index;
 import com.google.common.collect.TreeBasedTable;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
+import headwater.data.Lookup;
 import headwater.util.Utils;
 import headwater.data.KeyObserver;
 import headwater.hash.BitHashableKey;
@@ -25,7 +26,8 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     private final TreeBasedTable<F, V, IBitmap> bitmaps;
     
     private BitmapFactory bitmapFactory;
-    private KeyObserver<K, F, V> bitToKey = null;
+    private KeyObserver<K, F, V> observer = null;
+    private Lookup<K, F, V> bitToKey = null;
     
     public BitmapIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, FunnelHasher<V> valueHasher) {
         this.keyHasher = keyHasher;
@@ -40,7 +42,12 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     }
     
     public BitmapIndex<K, F, V> withObserver(KeyObserver<K, F, V> observer) {
-        this.bitToKey = observer;
+        this.observer = observer;
+        return this;
+    }
+    
+    public BitmapIndex<K, F, V> withLookup(Lookup<K, F, V> lookup) {
+        this.bitToKey = lookup;
         return this;
     }
     
@@ -51,8 +58,8 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     public void add(K key, F field, V value) {
         BitHashableKey<K> bitKey = keyHasher.hashableKey(key);
         getBitmap(field, value).set(bitKey.getHashBit());
-        if (bitToKey != null)
-            bitToKey.observe(bitKey, field, value);
+        if (observer != null)
+            observer.observe(bitKey, field, value);
     }
 
     public Collection<K> search(F field, V value) {

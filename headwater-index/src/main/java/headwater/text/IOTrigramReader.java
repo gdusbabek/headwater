@@ -1,18 +1,12 @@
 package headwater.text;
 
 import com.google.common.collect.Sets;
-import com.google.common.hash.Funnel;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import headwater.data.ColumnObserver;
 import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
 import headwater.data.KeyObserver;
 import headwater.data.Lookup;
 import headwater.data.MemLookupObserver;
-import headwater.hash.Hashers;
 import headwater.util.Utils;
 
 import java.io.IOError;
@@ -83,7 +77,7 @@ public class IOTrigramReader<K, F> implements ITrigramReader<K, F> {
         if (candidates == null)
             return results; // nothing.
         
-        Set<K> keyCandidates = new HashSet<K>(observer.toKeys(Utils.unbox(candidates.toArray(new Long[candidates.size()]))));
+        Set<K> keyCandidates = new HashSet<K>(lookup.toKeys(Utils.unbox(candidates.toArray(new Long[candidates.size()]))));
         
         // the candidates may or may not match. the whole point of the bitmap index is to whittle that question down
         // to candidates that we can run the regex against on a single machine.  This is what we do now.
