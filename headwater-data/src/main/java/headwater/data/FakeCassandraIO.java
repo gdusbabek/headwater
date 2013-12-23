@@ -2,12 +2,13 @@ package headwater.data;
 
 import com.google.common.primitives.UnsignedBytes;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
-import headwater.data.ColumnObserver;
-import headwater.data.IO;
 
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * This is basically a mock column family interface.
+ */
 public class FakeCassandraIO implements IO {
     
     Map<byte[], Map<byte[], byte[]>> data = new TreeMap<byte[], Map<byte[], byte[]>>(UnsignedBytes.lexicographicalComparator());

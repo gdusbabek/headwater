@@ -39,4 +39,9 @@ public abstract class AbstractTrigramIndexTest {
         // an out-of-order that should not work
         Assert.assertEquals(0, trigramIndex.globSearch("0", "*c*b*").size());
     }
+    
+    @Test
+    public void testLargeSubstring() {
+        Assert.assertTrue(trigramIndex.globSearch("0", "*ccdddee*").size() > 0);
+    }
 }

@@ -21,6 +21,8 @@ import headwater.data.MemLookupObserver;
 import headwater.hash.BitHashableKey;
 import headwater.hash.FunnelHasher;
 import headwater.hash.Hashers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOError;
 import java.math.BigInteger;
@@ -33,10 +35,13 @@ import java.util.concurrent.TimeUnit;
 
 public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     
+    private static final Logger log = LoggerFactory.getLogger(CTrigramIndex.class);
+    
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128(543231);
-    public static final int KEY_HASH_BITS = 128;
     
     private static final Timer trigramTimer = Metrics.newTimer(CTrigramIndex.class, "trigram_index", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer segmentLookupTimer = Metrics.newTimer(CTrigramIndex.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer segmentSetTimer = Metrics.newTimer(CTrigramIndex.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     private static final Timer observeTimer = Metrics.newTimer(CTrigramIndex.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     private static final Timer indexSerializeTimer = Metrics.newTimer(CTrigramIndex.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     
@@ -78,7 +83,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
 
         TimerContext serializeContext = indexSerializeTimer.time();
         // compute the bit to assert and the index row key.
-        final BitHashableKey<K> keyHash = ((FunnelHasher<K>)Hashers.makeHasher(key.getClass(), KEY_HASH_BITS)).hashableKey(key); 
+        final BitHashableKey<K> keyHash = ((FunnelHasher<K>)Hashers.makeHasher(key.getClass(), numBits.longValue())).hashableKey(key); 
         final long segment = keyHash.getHashBit() / segmentBitLength;
         final long bitInSegment = keyHash.getHashBit() % segmentBitLength;
         serializeContext.stop();
@@ -89,10 +94,18 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
         
         // now assert that bit for each trigram we are indexing.
         
+        TimerContext getSegmentContext;
+        TimerContext segmentSetContext;
+        TimerContext trigramContext; 
         for (Trigram trigram :Trigram.make(value)) {
-            TimerContext trigramContext = trigramTimer.time();
+            trigramContext = trigramTimer.time();
             byte[] indexKey = computeIndexRowKey(field, trigram);
-            getSegment(indexKey, segment).set(bitInSegment, true);  
+            getSegmentContext = segmentLookupTimer.time();
+            IBitmap segmentMap = getSegment(indexKey, segment);
+            getSegmentContext.stop();
+            segmentSetContext = segmentSetTimer.time();
+            segmentMap.set(bitInSegment, true);  
+            segmentSetContext.stop();
             trigramContext.stop();
         }
     }
@@ -130,7 +143,7 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
             String value = lookup.lookup(key, field);
             if (value != null && value.matches(regexQuery))
                 results.add(key);
-        }
+            }
         
         return results;
     }
@@ -178,8 +191,8 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
     private IBitmap getSegment(byte[] rowKey, long segment) {
         return new CassSegmentBitmap(segmentBitLength)
                 .withRowKey(rowKey)
-                .withColName(Utils.longToBytes(segment));
-    }
+                    .withColName(Utils.longToBytes(segment));
+        }
     
     private class CassSegmentBitmap extends AbstractBitmap {
         
@@ -314,15 +327,15 @@ public class CTrigramIndex<K, F> implements ITrigramIndex<K, F> {
         }
         
         byte[] getCurrentValue() {
-            try {
+                try {
                 return io.get(rowKey, colName);
-            } catch (NotFoundException ex) {
-                return new byte[bitLength];
-            } catch (Exception ex) {
-                throw new IOError(ex);
+                } catch (NotFoundException ex) {
+                    return new byte[bitLength];
+                } catch (Exception ex) {
+                    throw new IOError(ex);
+                }
             }
         } 
-    }
     
     private class ReadOnlyCassSegmentBitmap extends CassSegmentBitmap {
         

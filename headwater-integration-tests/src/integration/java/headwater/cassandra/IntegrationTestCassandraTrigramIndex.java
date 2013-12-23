@@ -72,6 +72,8 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
             }
         });
         
+        final long numBits = 16777216;
+        
         final Map<Long, String> bitToKey = new HashMap<Long, String>();
         final Map<String, String> lines = new HashMap<String, String>();
         for (File file : listing) {
@@ -79,7 +81,7 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
             int lineNumber = 0;
             String line = reader.readLine();
             while (line != null) {
-                BitHashableKey<String> key = Hashers.makeHasher(String.class, CTrigramIndex.KEY_HASH_BITS).hashableKey(file.getName() + "_" + lineNumber);
+                BitHashableKey<String> key = Hashers.makeHasher(String.class, numBits).hashableKey(file.getName() + "_" + lineNumber);
                 lineNumber += 1;
                 bitToKey.put(key.getHashBit(), key.getKey());
                 lines.put(key.getKey(), line);
@@ -88,8 +90,7 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         }
         System.out.println("Built reverse bit index");
         
-        
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(16777216, 8192)
+        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(numBits, 8192)
                 .withIO(new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index"))
                 .withObserver(new KeyObserver<String, String, String>() {
                     public void observe(BitHashableKey<String> key, String field, String value) {
@@ -115,10 +116,10 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         
         String[] searchTerms = new String[] {
                 "*ale*",
-                "*anthropophaginian*",
-                "*ber*ask*", // looking for BERGOMASK
-                "*ent*tai*ent*", // looking for ENTERTAINMENT
-                "entertainment"
+//                "*anthropophaginian*",
+//                "*ber*ask*", // looking for BERGOMASK
+//                "*ent*tai*ent*", // looking for ENTERTAINMENT
+//                "*entertainment*"
         };
         
         for (String query : searchTerms) {
@@ -140,11 +141,12 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
     // CASSANDRA_HOME=/Users/gdusbabek/Downloads/apache-cassandra-1.2.9 /Users/gdusbabek/Downloads/apache-cassandra-cli < /Users/gdusbabek/codes/github/headwater/headwater-integration-tests/src/integration/resources/load.script
     private void buildIndex() throws Exception {
         
+        final long numBits = 16777216;
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(1073741824L, 4194304)
 //        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(2097152L, 65536)
-        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(16777216, 8192)
+        CTrigramIndex<String, String> index = new CTrigramIndex<String, String>(numBits, 8192)
                 .withIO(io)
                 .withObserver(keyObserver)
                 .withLookup(keyObserver);
@@ -162,12 +164,12 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         
         final AtomicInteger lineCounter = new AtomicInteger(0);
         
-//        new Thread("Dumper") { public void run() {
-//            while (true) {
-//                try { sleep(30000); } catch (Exception e) {};
-//                dumpMetrics();
-//            }
-//        }}.start();
+        new Thread("Dumper") { public void run() {
+            while (true) {
+                try { sleep(10000); } catch (Exception e) {};
+                dumpMetrics();
+            }
+        }}.start();
         
         for (File file : listing) {
             System.out.println("indexing " + file.getName());
@@ -202,7 +204,7 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
                 }
                 lineNumber += 1;
                 if (lineNumber % 500 == 0) {
-                    System.out.println(lineNumber);
+//                    System.out.println(lineNumber);
                 }
                 line = reader.readLine();
                 lineCounter.incrementAndGet();
@@ -221,13 +223,14 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
         
         SortedMap<MetricName, Metric> metrics = metricMap.values().iterator().next();
         for (Map.Entry<MetricName, Metric> entry : metrics.entrySet()) {
-            System.out.println(entry.getKey().getName());
+            System.out.print(entry.getKey().getName() + " ");
             if (entry.getValue() instanceof Timer) {
                 Timer timer = (Timer)entry.getValue();
                 Snapshot snapshot = timer.getSnapshot();
                 System.out.println(String.format("  98th: %s", snapshot.get98thPercentile()));
             }
         }
+        System.out.println();
     }
     
     public static void main(String args[]) {
@@ -236,7 +239,7 @@ public class IntegrationTestCassandraTrigramIndex extends AbstractTrigramIndexTe
             throw new RuntimeException("Please set SHAKESPEARE_PATH");
         
         try {
-//            new IntegrationTestCassandraTrigramIndex().testPerformance();
+            new IntegrationTestCassandraTrigramIndex().buildIndex();
             new IntegrationTestCassandraTrigramIndex().queryIndex();
         } catch (Throwable th) {
             th.printStackTrace();
