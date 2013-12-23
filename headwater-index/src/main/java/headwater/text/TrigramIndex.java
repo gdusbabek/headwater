@@ -18,11 +18,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/** does everything in memory. No disk/IO options. This is the ideal, but isn't practical of course. */
 public class TrigramIndex<K, F> implements ITrigramReader<K, F>, ITrigramWriter<K, F> {
     
-    private BitmapIndex<K, F, Trigram> index;
     private KeyObserver<K, F, String> keyObserver;
     private Lookup<K, F, String> objectLookup;
+    
+    private BitmapIndex<K, F, Trigram> index;
     private FunnelHasher<K> keyHasher;
     
     public TrigramIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, long trigramHashBitLength) {
