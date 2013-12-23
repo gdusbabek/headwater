@@ -19,8 +19,6 @@ import java.util.SortedMap;
 public class BitmapIndex<K, F, V> implements Index<K, F, V> {
 
     private final FunnelHasher keyHasher;
-    private final FunnelHasher fieldHasher;
-    private final FunnelHasher valueHasher;
     
     // F -> V -> bitmap
     private final TreeBasedTable<F, V, IBitmap> bitmaps;
@@ -31,8 +29,6 @@ public class BitmapIndex<K, F, V> implements Index<K, F, V> {
     
     public BitmapIndex(FunnelHasher<K> keyHasher, FunnelHasher<F> fieldHasher, FunnelHasher<V> valueHasher) {
         this.keyHasher = keyHasher;
-        this.fieldHasher = fieldHasher;
-        this.valueHasher = valueHasher;
         bitmaps = TreeBasedTable.create(fieldHasher, valueHasher);
     }
     
