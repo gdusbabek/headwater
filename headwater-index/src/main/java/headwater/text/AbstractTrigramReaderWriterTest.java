@@ -86,6 +86,7 @@ public abstract class AbstractTrigramReaderWriterTest {
     static final boolean BUILD;
     static final boolean QUERY;
     static final int NUM_THREADS;
+    static final int CACHE_MB;
     
     static {
         NUM_BITS = System.getProperty("NUM_BITS") == null ? 16777216 : Long.parseLong(System.getProperty("NUM_BITS"));
@@ -94,6 +95,8 @@ public abstract class AbstractTrigramReaderWriterTest {
         BUILD = System.getProperty("BUILD") == null ? true : Boolean.parseBoolean(System.getProperty("BUILD"));
         QUERY = System.getProperty("QUERY") == null ? true : Boolean.parseBoolean(System.getProperty("QUERY"));
         NUM_THREADS = System.getProperty("NUM_THREADS") == null ? 10 : Integer.parseInt(System.getProperty("NUM_THREADS"));
+        CACHE_MB = System.getProperty("CACHE_MB") == null ? 512 : Integer.parseInt(System.getProperty("CACHE_MB"));
+        
         
         System.out.println("NUM_BITS " + NUM_BITS);
         System.out.println("SEGMENT_BITS " + SEGMENT_BITS);
@@ -101,6 +104,7 @@ public abstract class AbstractTrigramReaderWriterTest {
         System.out.println("QUERY " + QUERY);
         System.out.println("BUILD " + BUILD);
         System.out.println("NUM_THREADS " + NUM_THREADS);
+        System.out.println("CACHE_MB " + CACHE_MB);
         
     }
     
@@ -224,7 +228,7 @@ public abstract class AbstractTrigramReaderWriterTest {
         }
         
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
-        final BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(NUM_BITS, SEGMENT_BITS, 536870912)
+        final BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(NUM_BITS, SEGMENT_BITS, CACHE_MB * 0x00100000)
                 .withIO(io)
                 .withObserver(keyObserver);
 
