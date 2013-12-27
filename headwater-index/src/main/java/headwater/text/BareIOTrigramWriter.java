@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class BareIOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
-    private static final Timer addTimer = Metrics.newTimer(BareIOTrigramWriter.class, "index_add", "trigram", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private static final Timer addTimer = Metrics.newTimer(BareIOTrigramWriter.class, "index_add", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     private static final Meter segmentEvictions = Metrics.newMeter(BareIOTrigramWriter.class, "segment_evictions", "trigram", "meter", TimeUnit.SECONDS);
     
     private final BigInteger numBits;
