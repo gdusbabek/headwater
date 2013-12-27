@@ -24,10 +24,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class BareIOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
-    private static final Timer segmentLookupTimer = Metrics.newTimer(BareIOTrigramWriter.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer segmentSetTimer = Metrics.newTimer(BareIOTrigramWriter.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer observeTimer = Metrics.newTimer(BareIOTrigramWriter.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer indexSerializeTimer = Metrics.newTimer(BareIOTrigramWriter.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer addTimer = Metrics.newTimer(BareIOTrigramWriter.class, "index_add", "trigram", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
     private static final Meter segmentEvictions = Metrics.newMeter(BareIOTrigramWriter.class, "segment_evictions", "trigram", "meter", TimeUnit.SECONDS);
     
     private final BigInteger numBits;
@@ -84,31 +81,22 @@ public class BareIOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
     }
     
     public void add(K key, F field, String value) {
-
-        TimerContext serializeContext = indexSerializeTimer.time();
+        TimerContext ctx = addTimer.time();
         // compute the bit to assert and the index row key.
         final BitHashableKey<K> keyHash = ((FunnelHasher<K>) Hashers.makeHasher(key.getClass(), numBits.longValue())).hashableKey(key); 
         final long segment = keyHash.getHashBit() / segmentBitLength;
         final long bitInSegment = keyHash.getHashBit() % segmentBitLength;
-        serializeContext.stop();
         
-        TimerContext observeContext = observeTimer.time();
         observer.observe(keyHash, field, value);
-        observeContext.stop();
         
         // now assert that bit for each trigram we are indexing.
         
-        TimerContext getSegmentContext;
-        TimerContext segmentSetContext;
         for (Trigram trigram :Trigram.make(value)) {
             byte[] indexKey = Util.computeIndexRowKey(field, trigram);
-            getSegmentContext = segmentLookupTimer.time();
             IBitmap segmentMap = getSegment(indexKey, segment);
-            getSegmentContext.stop();
-            segmentSetContext = segmentSetTimer.time();
             segmentMap.set(bitInSegment, true);  
-            segmentSetContext.stop();
         }
+        ctx.stop();
     }
     
     private IBitmap getSegment(byte[] rowKey, long segment) {
