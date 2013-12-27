@@ -63,7 +63,8 @@ public class BareIOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
                             return new IOBitmapSegment(segmentBitLength, io)
                                     .withRowKey(key.rowKey)
                                     .withColName(key.colName)
-                                    .withCacheing();
+                                    .withReadCaching()
+                                    .withAsynchronousUpdates();
                         }
                     });
             segmentCache.stats();
