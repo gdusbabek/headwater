@@ -252,28 +252,25 @@ public abstract class AbstractTrigramReaderWriterTest {
         
         SortedMap<String, SortedMap<MetricName, Metric>> metricMap = registry.groupedMetrics(new MetricPredicate() {
             public boolean matches(MetricName name, Metric metric) {
-                try {
-                    return name.getScope().equals("trigram");
-                } catch (Throwable th) {
-                    return true;
-                }
+                return true;
             }
         });
         
-        SortedMap<MetricName, Metric> metrics = metricMap.values().iterator().next();
-        for (Map.Entry<MetricName, Metric> entry : metrics.entrySet()) {
-            System.out.print(entry.getKey().getName() + " ");
-            if (entry.getValue() instanceof Timer) {
-                Timer timer = (Timer)entry.getValue();
-                Snapshot snapshot = timer.getSnapshot();
-                System.out.println(String.format("count: %d, 98th: %s", timer.count(), snapshot.get98thPercentile()));
-                
-            } else if (entry.getValue() instanceof Counter) {
-                Counter counter = (Counter)entry.getValue();
-                System.out.println(String.format("count: %d", counter.count()));
-            } else if (entry.getValue() instanceof Meter) {
-                Meter meter = (Meter)entry.getValue();
-                System.out.println(String.format("count: %d", meter.count()));
+        for (SortedMap<MetricName, Metric> metrics : metricMap.values()) {
+            for (Map.Entry<MetricName, Metric> entry : metrics.entrySet()) {
+                System.out.print(String.format("%s.%s ", entry.getKey().getClass().getSimpleName(), entry.getKey().getName()));
+                if (entry.getValue() instanceof Timer) {
+                    Timer timer = (Timer)entry.getValue();
+                    Snapshot snapshot = timer.getSnapshot();
+                    System.out.println(String.format("count: %d, 98th: %s ", timer.count(), snapshot.get98thPercentile()));
+                    
+                } else if (entry.getValue() instanceof Counter) {
+                    Counter counter = (Counter)entry.getValue();
+                    System.out.println(String.format("count: %d", counter.count()));
+                } else if (entry.getValue() instanceof Meter) {
+                    Meter meter = (Meter)entry.getValue();
+                    System.out.println(String.format("count: %d", meter.count()));
+                }
             }
         }
         System.out.println();
