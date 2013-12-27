@@ -1,13 +1,19 @@
 package headwater.text;
 
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.TimerContext;
 import headwater.bitmap.AbstractBitmap;
 import headwater.data.IO;
 import headwater.util.Utils;
 
 import java.io.IOError;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class IOBitmapSegment extends AbstractBitmap {
         
@@ -16,6 +22,13 @@ public class IOBitmapSegment extends AbstractBitmap {
     
     private final int bitLength;
     private IO io;
+    
+    private boolean cacheing = false;
+    
+    private Counter readHits = Metrics.newCounter(IOBitmapSegment.class, "segment_hits", "trigram");
+    private Counter readMissses = Metrics.newCounter(IOBitmapSegment.class, "segment_misses", "trigram");
+    private Timer readTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_reads", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private Timer writeTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_writes", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     
     public IOBitmapSegment(int bitLength, IO io) {
         this.bitLength = bitLength;
@@ -30,6 +43,15 @@ public class IOBitmapSegment extends AbstractBitmap {
     public IOBitmapSegment withColName(byte[] colName) {
         this.colName = colName;
         return this;
+    }
+    
+    public IOBitmapSegment withCacheing() {
+        cacheing = true;
+        return this;
+    }
+    
+    public int hashCode() {
+        return Arrays.hashCode(rowKey) ^ Arrays.hashCode(colName);
     }
     
     //
@@ -139,20 +161,43 @@ public class IOBitmapSegment extends AbstractBitmap {
     }
     
     private void setCurrentValue(byte[] buf) {
+        TimerContext ctx = writeTimer.time();
         try {
             io.put(rowKey, colName, buf);
         } catch (Exception ex) {
             throw new IOError(ex);
+        } finally {
+            ctx.stop();
+        }
+        
+    }
+    
+    private byte[] cachedCurrentValue = null;
+    
+    byte[] getCurrentValue() {
+        if (cacheing) {
+            if (cachedCurrentValue == null) {
+                readMissses.inc();
+                cachedCurrentValue = getUncachedCurrentValue();
+            } else {
+                readHits.inc();
+            }
+            return cachedCurrentValue;
+        } else {
+            return getUncachedCurrentValue();
         }
     }
     
-    byte[] getCurrentValue() {
+    byte[] getUncachedCurrentValue() {
+        TimerContext ctx = readTimer.time();
         try {
-        return io.get(rowKey, colName);
+            return io.get(rowKey, colName);
         } catch (NotFoundException ex) {
             return new byte[bitLength];
         } catch (Exception ex) {
             throw new IOError(ex);
+        } finally {
+            ctx.stop();
         }
     }
 } 
