@@ -6,8 +6,8 @@ import headwater.data.IO;
 import headwater.data.IOLookupObserver;
 
 import headwater.text.AbstractTrigramReaderWriterTest;
-import headwater.text.IOTrigramReader;
-import headwater.text.IOTrigramWriter;
+import headwater.text.BareIOTrigramReader;
+import headwater.text.BareIOTrigramWriter;
 
 
 public class IntegrationTestCassandraTrigramReaderWriter extends AbstractTrigramReaderWriterTest {
@@ -27,11 +27,10 @@ public class IntegrationTestCassandraTrigramReaderWriter extends AbstractTrigram
         );
         IO io = new CassandraIO("127.0.0.1", 9160, "headwater", "my_data_trigram_index");
 //        IO io = new FakeCassandraIO();
-        this.reader =  new IOTrigramReader<String, String>(1073741824L, 4194304)
+        this.reader =  new BareIOTrigramReader<String, String>(1073741824L, 4194304)
                         .withIO(io)
-                        .withObserver(dataAccess)
                         .withLookup(dataAccess);
-        this.writer = new IOTrigramWriter<String, String>(1073741824L, 4194304)
+        this.writer = new BareIOTrigramWriter<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess);
     }

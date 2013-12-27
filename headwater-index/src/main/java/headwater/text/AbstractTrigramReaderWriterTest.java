@@ -109,11 +109,6 @@ public abstract class AbstractTrigramReaderWriterTest {
         
         BareIOTrigramReader<String, String> index = new BareIOTrigramReader<String, String>(numBits, 8192)
                 .withIO(io)
-                .withObserver(new KeyObserver<String, String, String>() {
-                    public void observe(BitHashableKey<String> key, String field, String value) {
-                        // not implemented.
-                    }
-                })
                 .withLookup(new Lookup<String, String, String>() {
                     public String lookup(String key, String field) {
                         return lines.get(key);

@@ -14,7 +14,6 @@ public class TestIOTrigramReaderWriter extends AbstractTrigramReaderWriterTest {
         // those are huge segments fwiw.
         this.reader = new BareIOTrigramReader<String, String>(1073741824L, 4194304)
                 .withIO(io)
-                .withObserver(dataAccess)
                 .withLookup(dataAccess);
         this.writer = new BareIOTrigramWriter<String, String>(1073741824L, 4194304)
                 .withIO(io)

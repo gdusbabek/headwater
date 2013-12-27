@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import headwater.data.ColumnObserver;
 import headwater.data.FakeCassandraIO;
 import headwater.data.IO;
-import headwater.data.KeyObserver;
 import headwater.data.Lookup;
 import headwater.data.MemLookupObserver;
 import headwater.util.Utils;
@@ -24,7 +23,6 @@ public class BareIOTrigramReader<K, F> implements ITrigramReader<K, F> {
     private final int segmentBitLength;
     
     private IO io;
-    private KeyObserver<K, F, String> observer;
     private Lookup<K, F, String> lookup;
     
     public BareIOTrigramReader(long numBits, int segmentBitLength) {
@@ -34,17 +32,11 @@ public class BareIOTrigramReader<K, F> implements ITrigramReader<K, F> {
         // mainly for testing.
         this.io = new FakeCassandraIO();
         MemLookupObserver<K, F, String> dataAccess = new MemLookupObserver<K, F, String>();
-        this.observer = dataAccess;
         this.lookup = dataAccess;
     }
     
     public BareIOTrigramReader<K, F> withIO(IO io) {
         this.io = io;
-        return this;
-    }
-    
-    public BareIOTrigramReader<K, F> withObserver(KeyObserver<K, F, String> observer) {
-        this.observer = observer;
         return this;
     }
     
