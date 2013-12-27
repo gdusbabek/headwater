@@ -13,10 +13,37 @@ import java.io.IOError;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class IOBitmapSegment extends AbstractBitmap {
+    
+    // used in async update mode.
+    private static ExecutorService asyncUpdateService = Executors.newFixedThreadPool(10, new ThreadFactory() {
+        private final AtomicInteger threadNumber = new AtomicInteger(0);
+        private final ThreadGroup group = Thread.currentThread().getThreadGroup();
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                                  "AsyncBitmapUpdate-" + threadNumber.getAndIncrement(),
+                                  0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
         
+    });
+    
+    private static Counter readHits = Metrics.newCounter(IOBitmapSegment.class, "segment_hits", "trigram");
+    private static Counter readMissses = Metrics.newCounter(IOBitmapSegment.class, "segment_misses", "trigram");
+    private static Timer readTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_reads", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static Timer writeTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_writes", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static Counter skippedWrites = Metrics.newCounter(IOBitmapSegment.class, "skipped_writes", "trigram");
+    
     protected byte[] rowKey;
     protected byte[] colName;
     
@@ -24,11 +51,7 @@ public class IOBitmapSegment extends AbstractBitmap {
     private IO io;
     
     private boolean cacheing = false;
-    
-    private Counter readHits = Metrics.newCounter(IOBitmapSegment.class, "segment_hits", "trigram");
-    private Counter readMissses = Metrics.newCounter(IOBitmapSegment.class, "segment_misses", "trigram");
-    private Timer readTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_reads", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private Timer writeTimer = Metrics.newTimer(IOBitmapSegment.class, "segment_writes", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private UpdateContext updateContext = null;
     
     public IOBitmapSegment(int bitLength, IO io) {
         this.bitLength = bitLength;
@@ -45,8 +68,13 @@ public class IOBitmapSegment extends AbstractBitmap {
         return this;
     }
     
-    public IOBitmapSegment withCacheing() {
+    public IOBitmapSegment withReadCaching() {
         cacheing = true;
+        return this;
+    }
+    
+    public IOBitmapSegment withAsynchronousUpdates() {
+        this.updateContext = new UpdateContext();
         return this;
     }
     
@@ -161,6 +189,28 @@ public class IOBitmapSegment extends AbstractBitmap {
     }
     
     private void setCurrentValue(byte[] buf) {
+        if (updateContext != null)
+            asyncUdate(buf);        
+        else
+            syncUpdate(buf);
+    }
+    
+    
+    private void asyncUdate(final byte[] buf) {
+        updateContext.increment();
+        asyncUpdateService.submit(new Runnable() {
+            public void run() {
+                int value = updateContext.decrement();
+                if (value == 0) {
+                    syncUpdate(buf);
+                } else {
+                    skippedWrites.inc();
+                }
+            }
+        });
+    }
+    
+    private void syncUpdate(byte[] buf) {
         TimerContext ctx = writeTimer.time();
         try {
             io.put(rowKey, colName, buf);
@@ -169,10 +219,11 @@ public class IOBitmapSegment extends AbstractBitmap {
         } finally {
             ctx.stop();
         }
-        
     }
     
+    
     private byte[] cachedCurrentValue = null;
+    
     
     byte[] getCurrentValue() {
         if (cacheing) {
@@ -198,6 +249,19 @@ public class IOBitmapSegment extends AbstractBitmap {
             throw new IOError(ex);
         } finally {
             ctx.stop();
+        }
+    }
+    
+    
+    private class UpdateContext {
+        private AtomicInteger count = new AtomicInteger(0);
+        
+        public void increment() {
+            count.incrementAndGet();
+        } 
+        
+        public int decrement() {
+            return count.decrementAndGet();
         }
     }
 } 
