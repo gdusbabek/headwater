@@ -4,6 +4,8 @@ package headwater.text;
 import com.google.common.collect.Sets;
 import com.netflix.astyanax.connectionpool.exceptions.OperationTimeoutException;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Meter;
 import com.yammer.metrics.core.Metric;
 import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.core.MetricPredicate;
@@ -11,7 +13,6 @@ import com.yammer.metrics.core.MetricsRegistry;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.stats.Snapshot;
 import headwater.data.IO;
-import headwater.data.KeyObserver;
 import headwater.data.Lookup;
 import headwater.data.MemLookupObserver;
 import headwater.hash.BitHashableKey;
@@ -77,7 +78,28 @@ public abstract class AbstractTrigramReaderWriterTest {
     
     // for testing other things...
     
+    static final long NUM_BITS;
+    static final int SEGMENT_BITS;
+    static final int MAX_FILES;
+    static final boolean BUILD;
+    static final boolean QUERY;
+    
+    static {
+        NUM_BITS = System.getProperty("NUM_BITS") == null ? 16777216 : Long.parseLong(System.getProperty("NUM_BITS"));
+        SEGMENT_BITS = System.getProperty("SEGMENT_BITS") == null ? 8192 : Integer.parseInt(System.getProperty("SEGMENT_BITS"));
+        MAX_FILES = System.getProperty("MAX_FILES") == null ? 1000 : Integer.parseInt(System.getProperty("MAX_FILES"));
+        BUILD = System.getProperty("BUILD") == null ? true : Boolean.parseBoolean(System.getProperty("BUILD"));
+        QUERY = System.getProperty("QUERY") == null ? true : Boolean.parseBoolean(System.getProperty("QUERY"));
+        
+        System.out.println("NUM_BITS " + NUM_BITS);
+        System.out.println("SEGMENT_BITS " + SEGMENT_BITS);
+        System.out.println("MAX_FILES " + MAX_FILES);
+        System.out.println("QUERY " + QUERY);
+    }
+    
     protected final void queryIndex(IO io) throws Exception {
+        if (!QUERY) return;
+        
         File shakespeareDir = new File(System.getProperty("SHAKESPEARE_PATH"));
         File[] listing = shakespeareDir.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -89,7 +111,6 @@ public abstract class AbstractTrigramReaderWriterTest {
             }
         });
         
-        final long numBits = 16777216;
         
         final Map<Long, String> bitToKey = new HashMap<Long, String>();
         final Map<String, String> lines = new HashMap<String, String>();
@@ -98,7 +119,7 @@ public abstract class AbstractTrigramReaderWriterTest {
             int lineNumber = 0;
             String line = reader.readLine();
             while (line != null) {
-                BitHashableKey<String> key = Hashers.makeHasher(String.class, numBits).hashableKey(file.getName() + "_" + lineNumber);
+                BitHashableKey<String> key = Hashers.makeHasher(String.class, NUM_BITS).hashableKey(file.getName() + "_" + lineNumber);
                 lineNumber += 1;
                 bitToKey.put(key.getHashBit(), key.getKey());
                 lines.put(key.getKey(), line);
@@ -107,7 +128,7 @@ public abstract class AbstractTrigramReaderWriterTest {
         }
         System.out.println("Built reverse bit index");
         
-        BareIOTrigramReader<String, String> index = new BareIOTrigramReader<String, String>(numBits, 8192)
+        BareIOTrigramReader<String, String> index = new BareIOTrigramReader<String, String>(NUM_BITS, SEGMENT_BITS)
                 .withIO(io)
                 .withLookup(new Lookup<String, String, String>() {
                     public String lookup(String key, String field) {
@@ -127,7 +148,11 @@ public abstract class AbstractTrigramReaderWriterTest {
                 });
         
         String[] searchTerms = new String[] {
-                "*ale*",
+//                "*ide*",
+                "*olt*",
+                "*ishonourabl*",
+                "*nbu*nin*" // unbuttoning
+//                "*ale*",
 //                "*anthropophaginian*",
 //                "*ber*ask*", // looking for BERGOMASK
 //                "*ent*tai*ent*", // looking for ENTERTAINMENT
@@ -142,7 +167,7 @@ public abstract class AbstractTrigramReaderWriterTest {
             int count = 0;
             for (String key : resultKeys) {
                 System.out.println(String.format("  %s -> %s", key, lines.get(key)));
-                if (++count >= 10) break;
+//                if (++count >= 10) break;
             }
             System.out.println("");
         }
@@ -151,10 +176,10 @@ public abstract class AbstractTrigramReaderWriterTest {
     
     // CASSANDRA_HOME=/Users/gdusbabek/Downloads/apache-cassandra-1.2.9 /Users/gdusbabek/Downloads/apache-cassandra-cli < /Users/gdusbabek/codes/github/headwater/headwater-integration-tests/src/integration/resources/load.script
     protected final void buildIndex(IO io) throws Exception {
+        if (!BUILD) return;
         
-        final long numBits = 16777216;
         MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
-        BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(numBits, 8192)
+        BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(NUM_BITS, SEGMENT_BITS, 536870912)
                 .withIO(io)
                 .withObserver(keyObserver);
 
@@ -178,7 +203,11 @@ public abstract class AbstractTrigramReaderWriterTest {
             }
         }}.start();
         
+        int fileCount = 0;
         for (File file : listing) {
+            if (fileCount >= MAX_FILES)
+                break;
+            fileCount += 1;
             System.out.println("indexing " + file.getName());
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String line = reader.readLine();
@@ -223,7 +252,11 @@ public abstract class AbstractTrigramReaderWriterTest {
         
         SortedMap<String, SortedMap<MetricName, Metric>> metricMap = registry.groupedMetrics(new MetricPredicate() {
             public boolean matches(MetricName name, Metric metric) {
-                return name.getScope().equals("trigram");
+                try {
+                    return name.getScope().equals("trigram");
+                } catch (Throwable th) {
+                    return true;
+                }
             }
         });
         
@@ -233,7 +266,14 @@ public abstract class AbstractTrigramReaderWriterTest {
             if (entry.getValue() instanceof Timer) {
                 Timer timer = (Timer)entry.getValue();
                 Snapshot snapshot = timer.getSnapshot();
-                System.out.println(String.format("  98th: %s", snapshot.get98thPercentile()));
+                System.out.println(String.format("count: %d, 98th: %s", timer.count(), snapshot.get98thPercentile()));
+                
+            } else if (entry.getValue() instanceof Counter) {
+                Counter counter = (Counter)entry.getValue();
+                System.out.println(String.format("count: %d", counter.count()));
+            } else if (entry.getValue() instanceof Meter) {
+                Meter meter = (Meter)entry.getValue();
+                System.out.println(String.format("count: %d", meter.count()));
             }
         }
         System.out.println();
