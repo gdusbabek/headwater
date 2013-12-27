@@ -2,7 +2,6 @@ package headwater.text;
 
 
 import com.google.common.collect.Sets;
-import com.netflix.astyanax.connectionpool.exceptions.OperationTimeoutException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Meter;
@@ -32,7 +31,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractTrigramReaderWriterTest {
     
@@ -83,6 +85,7 @@ public abstract class AbstractTrigramReaderWriterTest {
     static final int MAX_FILES;
     static final boolean BUILD;
     static final boolean QUERY;
+    static final int NUM_THREADS;
     
     static {
         NUM_BITS = System.getProperty("NUM_BITS") == null ? 16777216 : Long.parseLong(System.getProperty("NUM_BITS"));
@@ -90,11 +93,15 @@ public abstract class AbstractTrigramReaderWriterTest {
         MAX_FILES = System.getProperty("MAX_FILES") == null ? 1000 : Integer.parseInt(System.getProperty("MAX_FILES"));
         BUILD = System.getProperty("BUILD") == null ? true : Boolean.parseBoolean(System.getProperty("BUILD"));
         QUERY = System.getProperty("QUERY") == null ? true : Boolean.parseBoolean(System.getProperty("QUERY"));
+        NUM_THREADS = System.getProperty("NUM_THREADS") == null ? 10 : Integer.parseInt(System.getProperty("NUM_THREADS"));
         
         System.out.println("NUM_BITS " + NUM_BITS);
         System.out.println("SEGMENT_BITS " + SEGMENT_BITS);
         System.out.println("MAX_FILES " + MAX_FILES);
         System.out.println("QUERY " + QUERY);
+        System.out.println("BUILD " + BUILD);
+        System.out.println("NUM_THREADS " + NUM_THREADS);
+        
     }
     
     protected final void queryIndex(IO io) throws Exception {
@@ -172,17 +179,13 @@ public abstract class AbstractTrigramReaderWriterTest {
             System.out.println("");
         }
         
+        System.exit(-1);
     }
     
     // CASSANDRA_HOME=/Users/gdusbabek/Downloads/apache-cassandra-1.2.9 /Users/gdusbabek/Downloads/apache-cassandra-cli < /Users/gdusbabek/codes/github/headwater/headwater-integration-tests/src/integration/resources/load.script
     protected final void buildIndex(IO io) throws Exception {
         if (!BUILD) return;
         
-        MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
-        BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(NUM_BITS, SEGMENT_BITS, 536870912)
-                .withIO(io)
-                .withObserver(keyObserver);
-
         File shakespeareDir = new File(System.getProperty("SHAKESPEARE_PATH"));
         File[] listing = shakespeareDir.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -194,8 +197,6 @@ public abstract class AbstractTrigramReaderWriterTest {
             }
         });
         
-        final AtomicInteger lineCounter = new AtomicInteger(0);
-        
         new Thread("Dumper") { public void run() {
             while (true) {
                 try { sleep(10000); } catch (Exception e) {};
@@ -204,47 +205,51 @@ public abstract class AbstractTrigramReaderWriterTest {
         }}.start();
         
         int fileCount = 0;
+        List<ToIndex> lines = new ArrayList<ToIndex>();
+        
         for (File file : listing) {
             if (fileCount >= MAX_FILES)
                 break;
             fileCount += 1;
-            System.out.println("indexing " + file.getName());
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
             String line = reader.readLine();
             int lineNumber = 0;
             while (line != null) {
                 line = line.trim();
-                if (line.length() > 0) {
-                    try {
-                        index.add(file.getName() + "_" + lineNumber, "TEXT", line);
-                    } catch (Throwable th) {
-                        System.out.println("OUCH " + th.getMessage());
-                        if (th.getCause() != null && th.getCause() instanceof OperationTimeoutException) {
-                            System.out.println("Pausing");
-                            Thread.sleep(5000);
-                        }
-                        int numRetries = 5;
-                        for (int i = 0; i < numRetries; i++) {
-                            try {
-                                index = index.withIO(io);
-                                index.add(file.getName() + "_" + lineNumber, "TEXT", line);
-                                System.out.println("retry success");
-                                break;
-                            } catch (Throwable ouch) {
-                                System.out.println("retry failure");
-                                Thread.sleep(500);
-                            }
-                        }
-                    }
-                }
+                if (line.length() > 0)
+                    lines.add(new ToIndex(file.getName() + "_" + lineNumber, "TEXT", line));
                 lineNumber += 1;
-                if (lineNumber % 500 == 0) {
-//                    System.out.println(lineNumber);
-                }
                 line = reader.readLine();
-                lineCounter.incrementAndGet();
             }
         }
+        
+        MemLookupObserver<String, String, String> keyObserver = new MemLookupObserver<String, String, String>();
+        final BareIOTrigramWriter<String, String> index = new BareIOTrigramWriter<String, String>(NUM_BITS, SEGMENT_BITS, 536870912)
+                .withIO(io)
+                .withObserver(keyObserver);
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(NUM_THREADS);
+        
+        System.out.println(String.format("Will send %s lines to the index using %d threads", lines.size(), NUM_THREADS));
+        long wallStart = System.currentTimeMillis();
+
+        final CountDownLatch waitLatch = new CountDownLatch(lines.size());
+        final Counter linesIndexed = Metrics.newCounter(AbstractTrigramReaderWriterTest.class, "lines_indexed");
+        for (ToIndex item : lines) {
+            final ToIndex fitem = item;
+            threadPool.submit(new Runnable() {
+                public void run() {
+                    index.add(fitem.key, fitem.field, fitem.value);
+                    linesIndexed.inc();
+                    waitLatch.countDown();
+                }
+            });
+        }
+        
+        waitLatch.await(1, TimeUnit.HOURS);
+        long wallEnd = System.currentTimeMillis();
+        System.out.println(String.format("Done indexing %s lines/sec", (lines.size() / ((wallEnd-wallStart)/1000))));
+        dumpMetrics();
     }
     
     private static void dumpMetrics() {
@@ -262,7 +267,7 @@ public abstract class AbstractTrigramReaderWriterTest {
                 if (entry.getValue() instanceof Timer) {
                     Timer timer = (Timer)entry.getValue();
                     Snapshot snapshot = timer.getSnapshot();
-                    System.out.println(String.format("count: %d, 98th: %s ", timer.count(), snapshot.get98thPercentile()));
+                    System.out.println(String.format("count: %d, 98th: %s, rate: %s ", timer.count(), snapshot.get98thPercentile(), timer.oneMinuteRate()));
                     
                 } else if (entry.getValue() instanceof Counter) {
                     Counter counter = (Counter)entry.getValue();
@@ -274,5 +279,16 @@ public abstract class AbstractTrigramReaderWriterTest {
             }
         }
         System.out.println();
+    }
+    
+    private class ToIndex {
+        private final String key;
+        private final String field;
+        private final String value;
+        public ToIndex(String key, String field, String value) {
+            this.key = key;
+            this.field = field;
+            this.value = value;
+        }
     }
 }
