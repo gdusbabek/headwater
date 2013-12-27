@@ -12,11 +12,11 @@ public class TestIOTrigramReaderWriter extends AbstractTrigramReaderWriterTest {
         IO io = new FakeCassandraIO();
         // a 1Gbit index with 4Mbit segments.
         // those are huge segments fwiw.
-        this.reader = new IOTrigramReader<String, String>(1073741824L, 4194304)
+        this.reader = new BareIOTrigramReader<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess)
                 .withLookup(dataAccess);
-        this.writer = new IOTrigramWriter<String, String>(1073741824L, 4194304)
+        this.writer = new BareIOTrigramWriter<String, String>(1073741824L, 4194304)
                 .withIO(io)
                 .withObserver(dataAccess);
     }

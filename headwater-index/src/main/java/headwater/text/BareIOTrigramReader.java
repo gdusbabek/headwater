@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class IOTrigramReader<K, F> implements ITrigramReader<K, F> {
+public class BareIOTrigramReader<K, F> implements ITrigramReader<K, F> {
 
     
     private final BigInteger numBits;
@@ -27,7 +27,7 @@ public class IOTrigramReader<K, F> implements ITrigramReader<K, F> {
     private KeyObserver<K, F, String> observer;
     private Lookup<K, F, String> lookup;
     
-    public IOTrigramReader(long numBits, int segmentBitLength) {
+    public BareIOTrigramReader(long numBits, int segmentBitLength) {
         this.numBits = new BigInteger(Long.toString(numBits));
         this.segmentBitLength = segmentBitLength;
         
@@ -38,17 +38,17 @@ public class IOTrigramReader<K, F> implements ITrigramReader<K, F> {
         this.lookup = dataAccess;
     }
     
-    public IOTrigramReader<K, F> withIO(IO io) {
+    public BareIOTrigramReader<K, F> withIO(IO io) {
         this.io = io;
         return this;
     }
     
-    public IOTrigramReader<K, F> withObserver(KeyObserver<K, F, String> observer) {
+    public BareIOTrigramReader<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }
     
-    public IOTrigramReader<K, F> withLookup(Lookup<K, F, String> lookup) {
+    public BareIOTrigramReader<K, F> withLookup(Lookup<K, F, String> lookup) {
         this.lookup = lookup;
         return this;
     }

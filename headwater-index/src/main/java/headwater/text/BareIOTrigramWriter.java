@@ -16,11 +16,11 @@ import headwater.util.Utils;
 import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 
-public class IOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
-    private static final Timer segmentLookupTimer = Metrics.newTimer(IOTrigramWriter.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer segmentSetTimer = Metrics.newTimer(IOTrigramWriter.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer observeTimer = Metrics.newTimer(IOTrigramWriter.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-    private static final Timer indexSerializeTimer = Metrics.newTimer(IOTrigramWriter.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+public class BareIOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
+    private static final Timer segmentLookupTimer = Metrics.newTimer(BareIOTrigramWriter.class, "segment_lookup", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer segmentSetTimer = Metrics.newTimer(BareIOTrigramWriter.class, "segment_set", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer observeTimer = Metrics.newTimer(BareIOTrigramWriter.class, "observing", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
+    private static final Timer indexSerializeTimer = Metrics.newTimer(BareIOTrigramWriter.class, "serialization", "trigram", TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
     
     private final BigInteger numBits;
     private final int segmentBitLength;
@@ -28,7 +28,7 @@ public class IOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
     private IO io;
     private KeyObserver<K, F, String> observer;
     
-    public IOTrigramWriter(long numBits, int segmentBitLength) {
+    public BareIOTrigramWriter(long numBits, int segmentBitLength) {
         this.numBits = new BigInteger(Long.toString(numBits));
         this.segmentBitLength = segmentBitLength;
         
@@ -36,12 +36,12 @@ public class IOTrigramWriter<K, F> implements ITrigramWriter<K, F> {
         observer = new MemLookupObserver<K, F, String>();
     }
     
-    public IOTrigramWriter<K, F> withIO(IO io) {
+    public BareIOTrigramWriter<K, F> withIO(IO io) {
         this.io = io;
         return this;
     }
     
-    public IOTrigramWriter<K, F> withObserver(KeyObserver<K, F, String> observer) {
+    public BareIOTrigramWriter<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }
