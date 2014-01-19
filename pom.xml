@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>headwater</groupId>
+  <artifactId>headwater</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  
+  <build>
+    <plugins>
+      
+      <!-- Used for unit tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.14.1</version>
+        <configuration>
+          <parallel>classes</parallel>
+          <threadCount>5</threadCount>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0.1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.yammer.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-core</artifactId>
+      <version>1.56.34</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-thrift</artifactId>
+      <version>1.56.34</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-cassandra</artifactId>
+      <version>1.56.34</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.netflix.astyanax</groupId>
+      <artifactId>astyanax-recipes</artifactId>
+      <version>1.56.34</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>oro</groupId>
+      <artifactId>oro</artifactId>
+      <version>2.0.8</version>
+    </dependency>
+    
+  </dependencies>
+
+</project>
