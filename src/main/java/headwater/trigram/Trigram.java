@@ -127,6 +127,29 @@ public class Trigram implements Comparable<Trigram> {
         return makeOverlapping(s, null);
     }
     
+    // one query though, we can get away with testing against trigrams that do not overlap.
+    public static Iterable<Trigram>makeNonOverlapping(String s, AugmentationStrategy augmentation) {
+        List<Trigram> list = new ArrayList<Trigram>();
+        Queue<Integer> buf = new LinkedList<Integer>();
+        for (int i = 0; i < s.length();) {
+            int cp = s.codePointAt(i);
+            buf.add(cp);
+            if (buf.size() == N) {
+                list.add(new Trigram(Utils.unbox(buf.toArray(new Integer[N]))));
+                buf.clear();
+            }
+            i += Character.charCount(cp);
+        }
+        
+        if (list.size() == 0 && augmentation != null) {
+            for (Trigram trigram : augmentation.augment(s))
+                list.add(trigram);
+        }
+        
+        return list;
+    }
+    
+    // when we index something, we usually want to index all trigrams (they overlap each other).
     public static Iterable<Trigram> makeOverlapping(String s, AugmentationStrategy augmentation) {
         List<Trigram> list = new ArrayList<Trigram>();
         Queue<Integer> buf = new LinkedList<Integer>();
