@@ -1,14 +1,22 @@
-# Headwater - Bitmap Indexing Primitives
+# Headwater - Distributed Bitmap Indexing Primitives
 
 __NOTE__: This project currently exists as a proof of concept.  While I trust the indexer, there are a good deal of
-performance and usability problems to solve.
+performance and usability problems to solve.  On the plus side, I think there is a lot of low-hanging fruit to grab.
 It represents a couple hackdays worth of work that I needed to get off my computer.
 
 ## Concepts
 
 [Read this first](http://en.wikipedia.org/wiki/Bitmap_index), then come back.
 
-You can all the code doing something useful by examining `TestIndexing.java`.
+To see indexing in action take a look at `TestIndexing.java` and `Shakespeare.java`.
+
+## Goals
+
+* Glob searching over lots of data.
+
+## Performance
+
+Shorter queries result in faster responses.  That is `*foo*` will always return more quickly than `*foosterific*`.
 
 ###  headwater.bitmap
 
