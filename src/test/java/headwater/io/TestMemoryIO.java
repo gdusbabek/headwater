@@ -52,7 +52,7 @@ public class TestMemoryIO {
         Assert.assertEquals(0, dst.getRowCountUnsafe());
         
         // flush src into dst
-        src.flushTo(dst);
+//        src.flush(dst);
         
         Assert.assertEquals(0, src.getRowCountUnsafe());
         Assert.assertEquals(1, dst.getRowCountUnsafe());

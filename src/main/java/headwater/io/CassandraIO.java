@@ -1,7 +1,9 @@
 package headwater.io;
 
 import com.netflix.astyanax.AstyanaxContext;
+import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.Keyspace;
+import com.netflix.astyanax.MutationBatch;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolConfigurationImpl;
 import com.netflix.astyanax.connectionpool.impl.ConnectionPoolType;
@@ -19,7 +21,6 @@ import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.TimerContext;
 import headwater.Utils;
 import headwater.bitmap.IBitmap;
-import headwater.bitmap.MemoryBitmap;
 import headwater.bitmap.MemoryBitmap2;
 
 import java.util.HashMap;
@@ -65,6 +66,35 @@ public class CassandraIO implements IO {
             keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).putValue(value.toBytes(), null).execute();
         } finally {
             ctx.stop();
+        }
+    }
+    
+    public void flush(Map<byte[], Map<Long, IBitmap>> data) throws Exception {
+        int colCount = 0, maxCols = 1024;
+        MutationBatch batch = keyspace.prepareMutationBatch().lockCurrentTimestamp();
+        for (byte[] key : data.keySet()) {
+            
+            if (colCount >= maxCols) {
+                tryBatch(batch, colCount);
+                batch = keyspace.prepareMutationBatch().lockCurrentTimestamp();
+            }
+            
+            ColumnListMutation<byte[]> mutation = batch.withRow(columnFamily, key);
+            for (Map.Entry<Long, IBitmap> entry : data.get(key).entrySet()) {
+                mutation = mutation.putColumn(Utils.longToBytes(entry.getKey()), entry.getValue().toBytes());
+                colCount += 1;
+            }
+        }
+        
+        tryBatch(batch, colCount);
+    }
+    
+    private void tryBatch(MutationBatch batch, int colCount) throws Exception {
+        try {
+            batch.execute().getResult();
+        } catch (Exception ex) {
+            System.err.println(String.format("Busted with %d", colCount));
+            throw ex;
         }
     }
     

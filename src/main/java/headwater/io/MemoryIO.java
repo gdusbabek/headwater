@@ -67,14 +67,24 @@ public class MemoryIO implements IO {
     
     // this is basically an OR operation on all common bitsets. Afterward, we get rid of everything.
     // todo: think about concurrency. we'll want to be able to put while we are flushing.
-    public void flushTo(IO receiver) throws Exception {
+    public void flush(CassandraIO receiver) throws Exception {
+        // first, merge.
         for (byte[] key : data.keySet()) {
             for (Map.Entry<Long, IBitmap> col : data.get(key).entrySet()) {
-                IBitmap ored = receiver.get(key, col.getKey());
-                BitmapUtils.mutatingOR(ored, col.getValue());
-                receiver.put(key, col.getKey(), ored);
+                try {
+                    IBitmap currentValue = receiver.get(key, col.getKey());
+                    BitmapUtils.mutatingOR(col.getValue(), currentValue);
+                    
+                } catch (NotFoundException ex) {
+                    // no data in the db. will just use what we have here.
+                }
             }
         }
+        
+        // send it all to the new database.
+        receiver.flush(data);
+        
+        // reset.
         data.clear();
     }
 }

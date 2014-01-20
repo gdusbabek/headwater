@@ -1,0 +1,2 @@
+use headwater_index;
+truncate bitmap_index;

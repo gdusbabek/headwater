@@ -1,0 +1,25 @@
+create keyspace headwater_index
+    with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy'
+    and strategy_options = {replication_factor:1};
+
+use headwater_index;
+
+create column family bitmap_index
+    with column_type='Standard'
+    and comparator='BytesType'
+    and key_validation_class='BytesType'
+    and default_validation_class='BytesType'
+    and compaction_strategy=LeveledCompactionStrategy
+    and compaction_strategy_options={sstable_size_in_mb:256};
+
+create column family bit_to_key
+    with column_type='Standard'
+    and comparator='LongType'
+    and default_validation_class='UTF8Type';
+    
+create keyspace headwater_data
+    with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy'
+    and strategy_options = {replication_factor:1};
+    
+use headwater_data;
+
