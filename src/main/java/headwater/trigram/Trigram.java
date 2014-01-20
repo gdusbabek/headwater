@@ -124,10 +124,10 @@ public class Trigram implements Comparable<Trigram> {
     /** create a bunch of trigrams. pad with zeros (0x00, not 0x30). */
     
     public static Iterable<Trigram> make(String s) {
-        return make(s, null);
+        return makeOverlapping(s, null);
     }
     
-    public static Iterable<Trigram> make(String s, AugmentationStrategy augmentation) {
+    public static Iterable<Trigram> makeOverlapping(String s, AugmentationStrategy augmentation) {
         List<Trigram> list = new ArrayList<Trigram>();
         Queue<Integer> buf = new LinkedList<Integer>();
         boolean waxing = true;

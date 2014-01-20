@@ -182,7 +182,7 @@ public class TestTrigrams {
     
     @Test
     public void testComparingHigh() {
-        // bytes greater than 0x80 get converted to negative numbers during an int cast in java. make sure this doesn't
+        // bytes greater than 0x80 get converted to negative numbers during an int cast in java. makeOverlapping sure this doesn't
         // screw with comparisons.
         Trigram hi = Trigram.make(new byte[] {-127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}).iterator().next();
         Trigram lo = Trigram.make(new byte[] {5 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}).iterator().next();
@@ -228,7 +228,7 @@ public class TestTrigrams {
     public void testSingleAugmentation() {
         Set<Trigram> trigrams = new HashSet<Trigram>();
         int count = 0;
-        for (Trigram trigram : Trigram.make("fo", new AsciiAugmentationStrategy())) {
+        for (Trigram trigram : Trigram.makeOverlapping("fo", new AsciiAugmentationStrategy())) {
             trigrams.add(trigram);
             count += 1;
         }
@@ -240,7 +240,7 @@ public class TestTrigrams {
     public void testDoubleAugmentation() {
         Set<Trigram> trigrams = new HashSet<Trigram>();
         int count = 0;
-        for (Trigram trigram : Trigram.make("z", new AsciiAugmentationStrategy())) {
+        for (Trigram trigram : Trigram.makeOverlapping("z", new AsciiAugmentationStrategy())) {
             trigrams.add(trigram);
             count += 1;
         }

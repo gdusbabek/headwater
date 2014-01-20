@@ -114,7 +114,7 @@ public class Shakespeare {
                 for (String key : keys) {
                     String line = linesMap.get(key);
                     String[] parts = key.split("_", -1);
-                    System.out.println(String.format(" %s@%s: %s", parts[0], parts[1], line));
+                    //System.out.println(String.format(" %s@%s: %s", parts[0], parts[1], line));
                 }
             }
         } catch (Throwable ex) {

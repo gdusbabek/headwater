@@ -27,7 +27,6 @@ public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
         this.segmentBitLength = segmentBitLength;
         this.indexBitLength = new BigInteger(Long.toString(indexBitLength));
         this.io = new MemoryIO().withBitmapFactory(new BitmapFactory() {
-            @Override
             public IBitmap make() {
                 return new MemoryBitmap2(segmentBitLength);
             }

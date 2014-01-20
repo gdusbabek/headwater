@@ -15,6 +15,8 @@ import org.apache.oro.text.regex.MalformedPatternException;
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternMatcher;
 import org.apache.oro.text.regex.Perl5Matcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOError;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
-    
+    private static final Logger log = LoggerFactory.getLogger(StandardIndexReader.class);
     
     private IO io;
     private final int segmentBitLength;
@@ -45,7 +47,10 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         return this;
     }
     
+    // todo: consider the query string "*abcdef*". Right now we are intersecting all the trigrams (abc, bcd, cde, def).
+    // but we could get away with intersecing (abc, def) and have the same results.
     public Collection<K> globSearch(F field, String valueQuery) {
+        long queryStart = System.currentTimeMillis();
         String[] parcels = valueQuery.split("\\*", 0);
         Set<Long> candidateBits = null;
         for (final String parcel : parcels) {
@@ -63,6 +68,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
             if (candidateBits.size() == 0)
                 break;
         }
+        long queryEnd = System.currentTimeMillis();
         
         List<K> results = new ArrayList<K>();
         
@@ -74,6 +80,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         // the candidates may or may not match. the whole point of the bitmap index is to whittle that question down
         // to candidates that we can run the regex against on a single machine.  This is what we do now.
 
+        long pareStart = System.currentTimeMillis();
         GlobCompiler gc = new GlobCompiler();
         Pattern pattern = null;
         try {
@@ -88,6 +95,9 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
             if (value != null && matcher.matches(value, pattern))
                 results.add(key);
         }
+        long pareEnd = System.currentTimeMillis();
+
+        System.out.println(String.format("c:%d q:%d p:%d", keyCandidates.size(), queryEnd-queryStart, pareEnd-pareStart));
         
         return results;
     }
@@ -96,11 +106,13 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     
     private long[] trigramSearch(F field, String parcel, AugmentationStrategy augmentationStrategy) {
         final Set<Long> candidates = new HashSet<Long>();
-        for (Trigram trigram :Trigram.make(parcel, augmentationStrategy)) {
+        final UnsafeCounter colCount = new UnsafeCounter();
+        for (Trigram trigram :Trigram.makeOverlapping(parcel, augmentationStrategy)) {
             final byte[] indexKey = Hashers.computeIndexRowKey(field, trigram);
             try {
                 io.visitAllColumns(indexKey, 64, new ColumnObserver() {
                     public void observe(byte[] row, long segment, IBitmap value) {
+                        colCount.inc();
                         long[] assertedInSegment = value.getAsserted();
                         for (long l : assertedInSegment)
                             candidates.add(segment * segmentBitLength + l);
@@ -110,6 +122,15 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
                 throw new IOError(ex);
             }
         }
+        System.out.println(String.format("cols: %d", colCount.count));
         return Utils.unbox(candidates.toArray(new Long[candidates.size()]));
+    }
+    
+    private class UnsafeCounter {
+        private int count = 0;
+        void inc() {
+            count += 1;
+        }
+        
     }
 }

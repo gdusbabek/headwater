@@ -17,7 +17,6 @@ public class TestMemoryIO {
         Random rand = new Random(634523423562L);
 
         BitmapFactory factory = new BitmapFactory() {
-            @Override
             public IBitmap make() {
                 return MemoryBitmap2.wrap(new byte[1024]);
             }
