@@ -97,7 +97,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         }
         long pareEnd = System.currentTimeMillis();
 
-        System.out.println(String.format("c:%d q:%d p:%d", keyCandidates.size(), queryEnd-queryStart, pareEnd-pareStart));
+//        System.out.println(String.format("c:%d q:%d p:%d", keyCandidates.size(), queryEnd-queryStart, pareEnd-pareStart));
         
         return results;
     }
@@ -107,7 +107,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     private long[] trigramSearch(F field, String parcel, AugmentationStrategy augmentationStrategy) {
         final Set<Long> candidates = new HashSet<Long>();
         final UnsafeCounter colCount = new UnsafeCounter();
-        for (Trigram trigram :Trigram.makeOverlapping(parcel, augmentationStrategy)) {
+        for (Trigram trigram :Trigram.makeNonOverlapping(parcel, augmentationStrategy)) {
             final byte[] indexKey = Hashers.computeIndexRowKey(field, trigram);
             try {
                 io.visitAllColumns(indexKey, 64, new ColumnObserver() {
@@ -122,7 +122,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
                 throw new IOError(ex);
             }
         }
-        System.out.println(String.format("cols: %d", colCount.count));
+//        System.out.println(String.format("cols: %d", colCount.count));
         return Utils.unbox(candidates.toArray(new Long[candidates.size()]));
     }
     
