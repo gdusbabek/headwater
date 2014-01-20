@@ -1,4 +1,4 @@
-# Headwater - Distributed Bitmap Indexing Primitives
+# Headwater - Distributed Bitmap Indexing Primitives [![Build Status](https://secure.travis-ci.org/gdusbabek/headwater.png)](http://travis-ci.org/gdusbabek/headwater)
 
 __NOTE__: This project currently exists as a proof of concept.  While I trust the indexer, there are a good deal of
 performance and usability problems to solve.  On the plus side, I think there is a lot of low-hanging fruit to grab.
