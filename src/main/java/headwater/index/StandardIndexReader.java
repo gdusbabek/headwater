@@ -23,24 +23,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MemoryIndexReader<K, F> implements IndexReader<K, F, String> {
+public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     
     
     private IO io;
     private final int segmentBitLength;
     private Lookup<K, F, String> lookup;
     
-    public MemoryIndexReader(int segmentBitLength) {
+    public StandardIndexReader(int segmentBitLength) {
         this.segmentBitLength = segmentBitLength;
         this.io = new MemoryIO();
     }
     
-    public MemoryIndexReader<K, F> withIO(IO io) {
+    public StandardIndexReader<K, F> withIO(IO io) {
         this.io = io;
         return this;
     }
     
-    public MemoryIndexReader<K, F> withLookup(Lookup<K, F, String> lookup) {
+    public StandardIndexReader<K, F> withLookup(Lookup<K, F, String> lookup) {
         this.lookup = lookup;
         return this;
     }

@@ -12,7 +12,7 @@ import headwater.trigram.Trigram;
 
 import java.math.BigInteger;
 
-public class MemoryIndexWriter<K, F> implements IndexWriter<K, F, String> {
+public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
     
     private final int segmentBitLength;
     private final BigInteger indexBitLength;
@@ -20,7 +20,7 @@ public class MemoryIndexWriter<K, F> implements IndexWriter<K, F, String> {
     
     private IO io;
     
-    public MemoryIndexWriter(final int segmentBitLength, long indexBitLength) {
+    public StandardIndexWriter(final int segmentBitLength, long indexBitLength) {
         if (indexBitLength % segmentBitLength != 0)
             throw new Error("indexBitLength must be evenly divisible by segmentBitLength");
         
@@ -34,12 +34,12 @@ public class MemoryIndexWriter<K, F> implements IndexWriter<K, F, String> {
         });
     }
     
-    public MemoryIndexWriter<K, F> withObserver(KeyObserver<K, F, String> observer) {
+    public StandardIndexWriter<K, F> withObserver(KeyObserver<K, F, String> observer) {
         this.observer = observer;
         return this;
     }
     
-    public MemoryIndexWriter<K, F> withIO(IO io) {
+    public StandardIndexWriter<K, F> withIO(IO io) {
         this.io = io;
         return this;
     }

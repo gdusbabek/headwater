@@ -1,7 +1,6 @@
 package headwater.bitmap;
 
 import headwater.Utils;
-import headwater.index.MemoryIndexReader;
 
 public class MemoryBitmap2 implements IBitmap {
     

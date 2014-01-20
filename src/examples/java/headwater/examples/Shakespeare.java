@@ -8,8 +8,8 @@ import headwater.hashing.FunnelHasher;
 import headwater.hashing.Hashers;
 import headwater.index.KeyObserver;
 import headwater.index.Lookup;
-import headwater.index.MemoryIndexReader;
-import headwater.index.MemoryIndexWriter;
+import headwater.index.StandardIndexReader;
+import headwater.index.StandardIndexWriter;
 import headwater.io.CassandraIO;
 import headwater.io.MemoryIO;
 
@@ -95,7 +95,7 @@ public class Shakespeare {
                 bitToKey.put(keyHash.getHashBit(), keyHash.getKey());
             }
             
-            MemoryIndexReader<String, String> reader = new MemoryIndexReader<String, String>(SEGMENT_SIZE)
+            StandardIndexReader<String, String> reader = new StandardIndexReader<String, String>(SEGMENT_SIZE)
                     .withIO(cassandra)
                     .withLookup(lookup);
             
@@ -147,7 +147,7 @@ public class Shakespeare {
                 }
             };
             
-            MemoryIndexWriter<String, String> writer = new MemoryIndexWriter<String, String>(SEGMENT_SIZE, BITMAP_SIZE)
+            StandardIndexWriter<String, String> writer = new StandardIndexWriter<String, String>(SEGMENT_SIZE, BITMAP_SIZE)
                 .withObserver(keyObserver)
                 .withIO(memory);
             

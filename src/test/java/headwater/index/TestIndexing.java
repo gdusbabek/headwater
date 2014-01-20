@@ -31,8 +31,8 @@ public class TestIndexing {
     private Lookup<String, String, String> lookup;
     private KeyObserver<String, String, String> observer;
     private MemoryJack<String, String, String> jack;
-    private MemoryIndexReader<String, String> reader;
-    private MemoryIndexWriter<String, String> writer;
+    private StandardIndexReader<String, String> reader;
+    private StandardIndexWriter<String, String> writer;
     
     @Before
     public void setup() {
@@ -46,8 +46,8 @@ public class TestIndexing {
         this.jack = new MemoryJack<String, String, String>();
         this.lookup = jack;
         this.observer = jack;
-        this.reader = new MemoryIndexReader<String, String>(segmentLength).withIO(io).withLookup(lookup);
-        this.writer = new MemoryIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(observer);
+        this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withLookup(lookup);
+        this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(observer);
         
         Assert.assertNotNull(reader);
         Assert.assertNotNull(writer);
