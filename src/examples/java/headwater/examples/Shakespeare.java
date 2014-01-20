@@ -104,6 +104,9 @@ public class Shakespeare {
                     "*diffidence*", // kingjohn
                     "*lieutenant*", // othello
                     "*dishonest*", // twelthnight
+                    "*dif*",
+                    "*lie*",
+                    "*dis*"
             };
             long start = 0, end = 0;
             for (String query : queries) {
