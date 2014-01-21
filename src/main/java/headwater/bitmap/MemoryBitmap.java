@@ -18,10 +18,42 @@ public class MemoryBitmap implements IBitmap {
         this.numBits = numBits;
     }
     
+    private MemoryBitmap(byte[] buf) {
+        this(buf.length * 8);
+        this.setAll(buf);
+    }
+    
     @Override
     public MemoryBitmap clone() {
         MemoryBitmap clone = new MemoryBitmap((int)this.numBits, (OpenBitSet)this.bits.clone());
         return clone;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof IBitmap))
+            return false;
+        return MemoryBitmap.bitmapEquals(this, (IBitmap) obj);
+    }
+
+    public static boolean bitmapEquals(IBitmap a, IBitmap b) {
+        if (a == null && b != null)
+            return false;
+        if (a != null && b == null)
+            return false;
+        if (a == null && b == null)
+            return true;
+        
+        if (b.getBitLength() != a.getBitLength())
+            return false;
+        long[] aAsserted = a.getAsserted();
+        long[] bAsserted = b.getAsserted();
+        if (aAsserted.length != bAsserted.length)
+            return false;
+        for (int i = 0; i < aAsserted.length; i++)
+            if (aAsserted[i] != bAsserted[i])
+                return false;
+        return true;
     }
 
     public long getBitLength() {
@@ -65,8 +97,12 @@ public class MemoryBitmap implements IBitmap {
     }
 
     public void setAll(byte[] b) {
-        // ewww.
-        bits = new OpenBitSet(BitSet.valueOf(b));
+        // todo: ugh. make this better.
+        bits = new OpenBitSet(b.length * 8);
+        BitSet bs = BitSet.valueOf(b);
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            bits.set(i);
+        }
     }
 
     public byte[] toBytes() {
@@ -89,8 +125,7 @@ public class MemoryBitmap implements IBitmap {
     }
     
     public static MemoryBitmap wrap(byte[] buf) {
-        // ewwww.
-        return new MemoryBitmap(buf.length * 8, new OpenBitSet(BitSet.valueOf(buf)));
+        return new MemoryBitmap(buf);
     }
     
 }

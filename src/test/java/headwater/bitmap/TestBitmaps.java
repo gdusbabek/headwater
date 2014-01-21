@@ -1,6 +1,6 @@
 package headwater.bitmap;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,13 +17,16 @@ public class TestBitmaps {
     private final IBitmap wide;
     private final IBitmap padded;
     private final IBitmap setZero;
+    private final IBitmap bm0, bm1;
     
-    public TestBitmaps(IBitmap x, IBitmap y, IBitmap wide, IBitmap padded, IBitmap setZero) {
+    public TestBitmaps(IBitmap x, IBitmap y, IBitmap wide, IBitmap padded, IBitmap setZero, IBitmap bm0, IBitmap bm1) {
         this.x = x;
         this.y = y;
         this.wide = wide;
         this.padded = padded;
         this.setZero = setZero;
+        this.bm0 = bm0;
+        this.bm1 = bm1;
     }
     
     @Before
@@ -214,6 +217,19 @@ public class TestBitmaps {
             
     }
     
+    @Test
+    public void testMemoryBitmapSetAll() {
+        Assert.assertNotEquals(bm0, bm1);
+        Assert.assertEquals(1, bm0.getAsserted().length);
+        Assert.assertEquals(0, bm1.getAsserted().length);
+        
+        bm1.setAll(bm0.toBytes());
+        
+        Assert.assertEquals(1, bm0.getAsserted().length);
+        Assert.assertEquals(1, bm1.getAsserted().length);
+        Assert.assertEquals(bm0, bm1);
+    }
+    
     @Parameterized.Parameters
     public static List<Object[]> getParameters() {
         return new ArrayList<Object[]>() {{
@@ -229,6 +245,8 @@ public class TestBitmaps {
                 new MemoryBitmap(32), // wide
                 new MemoryBitmap(16), // padded
                 new MemoryBitmap(32), // setZero
+                MemoryBitmap.wrap(new byte[]{0,0,0,0,1}), // bm0
+                MemoryBitmap.wrap(new byte[]{0,0,0,0,0}) // bm1
         };
     }
     
@@ -239,6 +257,8 @@ public class TestBitmaps {
                 new MemoryBitmap2(32), // wide
                 new MemoryBitmap2(16), // padded
                 new MemoryBitmap2(32), // setZero
+                MemoryBitmap2.wrap(new byte[]{0,0,0,0,1}), // bm0
+                MemoryBitmap2.wrap(new byte[]{0,0,0,0,0}) // bm1
         };
     }
 }

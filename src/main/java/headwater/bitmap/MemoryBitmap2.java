@@ -76,7 +76,14 @@ public class MemoryBitmap2 implements IBitmap {
         System.arraycopy(buf, 0, copy, 0, copy.length);
         return MemoryBitmap2.wrap(copy);
     }
-    
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof IBitmap))
+            return false;
+        return MemoryBitmap.bitmapEquals(this, (IBitmap) obj);
+    }
+
     public static MemoryBitmap2 wrap(byte[] buf) {
         return new MemoryBitmap2(buf);
     }
