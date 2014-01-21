@@ -18,6 +18,10 @@ To see indexing in action take a look at `TestIndexing.java` and `Shakespeare.ja
 
 Shorter queries result in faster responses.  That is `*foo*` will always return more quickly than `*foosterific*`.
 
+## Java
+
+Uses Java 7. It would work fine on Java 6 except for a few methods used involving java.util.BitSet.
+
 ###  headwater.bitmap
 
 This is basically a `java.util.Bitset` with a few conveniences. I've built reference bitmaps from the very excellent
