@@ -541,7 +541,7 @@ public class OpenBitSet implements Serializable, Cloneable {
         byte[] buf = new byte[byteCount];
         int pos = 0;
         for (byte[] part : buffers) {
-            System.arraycopy(part, 0, buf, 0, part.length);
+            System.arraycopy(part, 0, buf, pos, part.length);
             pos += part.length;
         }
         return buf;
