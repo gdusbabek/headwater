@@ -60,11 +60,42 @@ Rather than a straight index, I've chose to make fields a part of the interfaces
 
 You can reduce this to a simple (key, value) index by assuming a constant field value.
 
-Glob queries are the goal here.
+Remember, glob queries are the goal here.
 
 #### Lookup interface
 
+Used on query.  When you query an index, this interface is used to convert a hashed bit (read from the bitmap) back to
+the key it represents.  An additional method takes that key and an additional field to lookup the value that was
+indexed.
+
+This may be broken up into two interfaces in the future, as the `toKey*()` and `lookup()` methods do different enough
+things and may have quite different implementations. 
+
 #### KeyObserver interface
+
+Used during indexing.  When you build an index, the act of adding to the index is observed by this class.  
+Implementations can be used to build the bit->key and (key,field)->value mappings that are expected by the `Lookup`
+interface.
+
+You will not need to supply a `KeyObserver` impelementation if you already have or know those mappings, or can derive 
+them easily. 
 
 #### MemoryJack
 
+Implements both the `Lookup` and `KeyObserver` interfaces in memory.  You wouldn't want to use it in production, but
+it gives you an idea of what the interfaces expect and is handy for testing things out.
+
+## Roadmap
+
+No order.
+
+* Cassandra-backed `Lookup` and `KeyObserver` implementations.
+* Some real documentation and how-to guides.
+
+## Questions?
+
+You can reach me several ways:
+
+* email: gdusbabek@gmail.com
+* twitter: @gdusbabek
+* IRC: gdusbabek on freenode (I'm almost always connected)
