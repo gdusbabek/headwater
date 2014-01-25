@@ -1,13 +1,14 @@
 package headwater.index;
 
 import com.google.common.collect.Sets;
+import com.netflix.astyanax.serializers.StringSerializer;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.MemoryBitmap2;
 import headwater.hashing.BitHashableKey;
 import headwater.hashing.Hashers;
 import headwater.io.IO;
-import headwater.io.MemoryIO;
+import headwater.io.MemoryBitmapIO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,26 +29,24 @@ public class TestIndexing {
     
     private long bitmapLength = 4294967296L;
     private IO io;
-    private Lookup<String, String, String> lookup;
-    private KeyObserver<String, String, String> observer;
-    private MemoryJack<String, String, String> jack;
+//    private MemoryJack<String, String, String> jack;
+    private IOJack<String, String, String> jack;
     private StandardIndexReader<String, String> reader;
     private StandardIndexWriter<String, String> writer;
     
     @Before
     public void setup() {
         final int segmentLength = 8192;
-        this.io = new MemoryIO().withBitmapFactory(new BitmapFactory() {
+        this.io = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
             @Override
             public IBitmap make() {
                 return new MemoryBitmap2(segmentLength);
             }
         });
-        this.jack = new MemoryJack<String, String, String>();
-        this.lookup = jack;
-        this.observer = jack;
-        this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withLookup(lookup);
-        this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(observer);
+//        this.jack = new MemoryJack<String, String, String>();
+        this.jack = new IOJack<String, String, String>(StringSerializer.get());
+        this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withDataLookup(jack).withKeyLookup(jack);
+        this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(jack);
         
         Assert.assertNotNull(reader);
         Assert.assertNotNull(writer);

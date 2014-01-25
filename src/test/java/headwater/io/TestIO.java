@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(Parameterized.class)
 public class TestIO {
-    private final IO io;
+    private final IO<Long, IBitmap> io;
     
     public TestIO(IO io) {
         this.io = io;
@@ -42,8 +42,8 @@ public class TestIO {
             io.put(key, (long)i, MemoryBitmap2.wrap(Utils.longToBytes(1000L * i)));
         
         final AtomicInteger readCount = new AtomicInteger(0);
-        io.visitAllColumns(key, 2, new ColumnObserver() {
-            public void observe(byte[] row, long col, IBitmap value) {
+        io.visitAllColumns(key, 2, new ColumnObserver<Long, IBitmap>() {
+            public void observe(byte[] row, Long col, IBitmap value) {
                 readCount.incrementAndGet();  
             }
         });
@@ -61,7 +61,7 @@ public class TestIO {
     @Parameterized.Parameters
     public static List<Object[]> getParameters() {
         return new ArrayList<Object[]>() {{
-            add(new Object[]{new MemoryIO()});
+            add(new Object[]{new MemoryBitmapIO()});
         }};
     }
 }

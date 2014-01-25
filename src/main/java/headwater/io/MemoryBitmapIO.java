@@ -7,15 +7,16 @@ import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.BitmapUtils;
 import headwater.bitmap.IBitmap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MemoryIO implements IO {
+public class MemoryBitmapIO implements IO<Long, IBitmap> {
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
     
-    public MemoryIO() {}
+    public MemoryBitmapIO() {}
         
     private Map<Long, IBitmap> getRow(byte[] key) {
         synchronized (data) {
@@ -28,16 +29,16 @@ public class MemoryIO implements IO {
         }
     }
     
-    public MemoryIO withBitmapFactory(BitmapFactory factory) {
+    public MemoryBitmapIO withBitmapFactory(BitmapFactory factory) {
         this.bitmapFactory = factory;
         return this;
     }
     
-    public void put(byte[] key, long col, IBitmap value) throws Exception {
+    public void put(byte[] key, Long col, IBitmap value) throws Exception {
         getRow(key).put(col, value);
     }
 
-    public IBitmap get(byte[] key, long col) throws Exception {
+    public IBitmap get(byte[] key, Long col) throws Exception {
         IBitmap value = getRow(key).get(col);
         if (value != null)
             return value;
@@ -48,6 +49,9 @@ public class MemoryIO implements IO {
         value = bitmapFactory.make();
         getRow(key).put(col, value);
         return value;
+    }
+
+    public void bulkPut(Map<byte[], List<Tuple<byte[], byte[]>>> data) {
         
     }
 
@@ -57,7 +61,7 @@ public class MemoryIO implements IO {
         }
     }
 
-    public void del(byte[] key, long col) throws Exception {
+    public void del(byte[] key, Long col) throws Exception {
         getRow(key).remove(Utils.longToBytes(col));
     }
     
@@ -67,7 +71,7 @@ public class MemoryIO implements IO {
     
     // this is basically an OR operation on all common bitsets. Afterward, we get rid of everything.
     // todo: think about concurrency. we'll want to be able to put while we are flushing.
-    public void flush(CassandraIO receiver) throws Exception {
+    public void flush(CassandraBitmapIO receiver) throws Exception {
         // first, merge.
         for (byte[] key : data.keySet()) {
             for (Map.Entry<Long, IBitmap> col : data.get(key).entrySet()) {

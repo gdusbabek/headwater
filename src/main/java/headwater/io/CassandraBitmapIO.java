@@ -27,17 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CassandraIO implements IO {
+public class CassandraBitmapIO implements IO<Long, IBitmap> {
 
     private Keyspace keyspace;
     private final ColumnFamily<byte[], byte[]> columnFamily;
     private final AstyanaxContext.Builder builder;
     
-    private final Timer putTimer = makeTimer(CassandraIO.class, "put", "cassandra");
-    private final Timer getTimer = makeTimer(CassandraIO.class, "get", "cassandra");
-    private final Timer visitAllTimer = makeTimer(CassandraIO.class, "visit", "cassandra");
+    private final Timer putTimer = makeTimer(CassandraBitmapIO.class, "put", "cassandra");
+    private final Timer getTimer = makeTimer(CassandraBitmapIO.class, "get", "cassandra");
+    private final Timer visitAllTimer = makeTimer(CassandraBitmapIO.class, "visit", "cassandra");
 
-    public CassandraIO(String host, int port, String keyspace, String columnFamily) {
+    public CassandraBitmapIO(String host, int port, String keyspace, String columnFamily) {
         builder = new AstyanaxContext.Builder()
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
@@ -60,7 +60,7 @@ public class CassandraIO implements IO {
         this.columnFamily = ColumnFamily.newColumnFamily(columnFamily, BytesArraySerializer.get(), BytesArraySerializer.get(), BytesArraySerializer.get());
     }
     
-    public void put(byte[] key, long col, IBitmap value) throws Exception {
+    public void put(byte[] key, Long col, IBitmap value) throws Exception {
         TimerContext ctx = putTimer.time();
         try {
             keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).putValue(value.toBytes(), null).execute();
@@ -98,7 +98,7 @@ public class CassandraIO implements IO {
         }
     }
     
-    public IBitmap get(byte[] key, long col) throws Exception {
+    public IBitmap get(byte[] key, Long col) throws Exception {
         TimerContext ctx = getTimer.time();
         try {
             byte[] buf = keyspace.prepareQuery(columnFamily)
@@ -112,7 +112,7 @@ public class CassandraIO implements IO {
     }
     
     // iterate over all columns, paging through data in a row.
-    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception {
+    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver<Long, IBitmap> observer) throws Exception {
         
         TimerContext ctx = visitAllTimer.time();
         try {
@@ -135,7 +135,7 @@ public class CassandraIO implements IO {
         }
     }
 
-    public void del(byte[] key, long col) throws Exception {
+    public void del(byte[] key, Long col) throws Exception {
         keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).deleteColumn().execute();
     }
     

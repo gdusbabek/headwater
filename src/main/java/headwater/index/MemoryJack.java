@@ -10,10 +10,12 @@ import java.util.Map;
 
 // don't use this in production. It's intended to facilitate testing.  In real life this will be represented by IO and
 // and a database.
-public class MemoryJack<K, F, V> implements KeyObserver<K, F, V>, Lookup<K, F, V> {
+public class MemoryJack<K, F, V> implements KeyObserver<K, F, V>, DataLookup<K, F, V>, KeyLookup<K> {
     
     private Map<Long, K> bitToKey = new HashMap<Long, K>();
     private Map<CompositeKey, V> store = new HashMap<CompositeKey, V>();
+    
+    public MemoryJack() { }
     
     // KeyObserver
     

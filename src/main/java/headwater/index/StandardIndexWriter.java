@@ -7,7 +7,7 @@ import headwater.hashing.BitHashableKey;
 import headwater.hashing.FunnelHasher;
 import headwater.hashing.Hashers;
 import headwater.io.IO;
-import headwater.io.MemoryIO;
+import headwater.io.MemoryBitmapIO;
 import headwater.trigram.Trigram;
 
 import java.math.BigInteger;
@@ -18,7 +18,7 @@ public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
     private final BigInteger indexBitLength;
     private KeyObserver<K, F, String> observer = new NullKeyObserver<K, F, String>();
     
-    private IO io;
+    private IO<Long, IBitmap> io;
     
     public StandardIndexWriter(final int segmentBitLength, long indexBitLength) {
         if (indexBitLength % segmentBitLength != 0)
@@ -26,7 +26,7 @@ public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
         
         this.segmentBitLength = segmentBitLength;
         this.indexBitLength = new BigInteger(Long.toString(indexBitLength));
-        this.io = new MemoryIO().withBitmapFactory(new BitmapFactory() {
+        this.io = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
             public IBitmap make() {
                 return new MemoryBitmap2(segmentBitLength);
             }
