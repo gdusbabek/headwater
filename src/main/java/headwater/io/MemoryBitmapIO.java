@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MemoryBitmapIO implements IO<IBitmap> {
+public class MemoryBitmapIO implements IO<Long, IBitmap> {
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
@@ -34,11 +34,11 @@ public class MemoryBitmapIO implements IO<IBitmap> {
         return this;
     }
     
-    public void put(byte[] key, long col, IBitmap value) throws Exception {
+    public void put(byte[] key, Long col, IBitmap value) throws Exception {
         getRow(key).put(col, value);
     }
 
-    public IBitmap get(byte[] key, long col) throws Exception {
+    public IBitmap get(byte[] key, Long col) throws Exception {
         IBitmap value = getRow(key).get(col);
         if (value != null)
             return value;
@@ -61,7 +61,7 @@ public class MemoryBitmapIO implements IO<IBitmap> {
         }
     }
 
-    public void del(byte[] key, long col) throws Exception {
+    public void del(byte[] key, Long col) throws Exception {
         getRow(key).remove(Utils.longToBytes(col));
     }
     

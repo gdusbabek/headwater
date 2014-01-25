@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CassandraBitmapIO implements IO<IBitmap> {
+public class CassandraBitmapIO implements IO<Long, IBitmap> {
 
     private Keyspace keyspace;
     private final ColumnFamily<byte[], byte[]> columnFamily;
@@ -60,7 +60,7 @@ public class CassandraBitmapIO implements IO<IBitmap> {
         this.columnFamily = ColumnFamily.newColumnFamily(columnFamily, BytesArraySerializer.get(), BytesArraySerializer.get(), BytesArraySerializer.get());
     }
     
-    public void put(byte[] key, long col, IBitmap value) throws Exception {
+    public void put(byte[] key, Long col, IBitmap value) throws Exception {
         TimerContext ctx = putTimer.time();
         try {
             keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).putValue(value.toBytes(), null).execute();
@@ -98,7 +98,7 @@ public class CassandraBitmapIO implements IO<IBitmap> {
         }
     }
     
-    public IBitmap get(byte[] key, long col) throws Exception {
+    public IBitmap get(byte[] key, Long col) throws Exception {
         TimerContext ctx = getTimer.time();
         try {
             byte[] buf = keyspace.prepareQuery(columnFamily)
@@ -112,7 +112,7 @@ public class CassandraBitmapIO implements IO<IBitmap> {
     }
     
     // iterate over all columns, paging through data in a row.
-    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception {
+    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver<Long, IBitmap> observer) throws Exception {
         
         TimerContext ctx = visitAllTimer.time();
         try {
@@ -135,7 +135,7 @@ public class CassandraBitmapIO implements IO<IBitmap> {
         }
     }
 
-    public void del(byte[] key, long col) throws Exception {
+    public void del(byte[] key, Long col) throws Exception {
         keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).deleteColumn().execute();
     }
     
