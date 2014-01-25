@@ -23,8 +23,8 @@ public class TestMemoryIO {
                 return MemoryBitmap2.wrap(new byte[1024]);
             }
         };
-        MemoryIO src = new MemoryIO().withBitmapFactory(factory);
-        MemoryIO dst = new MemoryIO().withBitmapFactory(factory);
+        MemoryBitmapIO src = new MemoryBitmapIO().withBitmapFactory(factory);
+        MemoryBitmapIO dst = new MemoryBitmapIO().withBitmapFactory(factory);
 
         Assert.assertEquals(0, src.getRowCountUnsafe());
         Assert.assertEquals(0, dst.getRowCountUnsafe());

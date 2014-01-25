@@ -27,17 +27,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CassandraIO implements IO<IBitmap> {
+public class CassandraBitmapIO implements IO<IBitmap> {
 
     private Keyspace keyspace;
     private final ColumnFamily<byte[], byte[]> columnFamily;
     private final AstyanaxContext.Builder builder;
     
-    private final Timer putTimer = makeTimer(CassandraIO.class, "put", "cassandra");
-    private final Timer getTimer = makeTimer(CassandraIO.class, "get", "cassandra");
-    private final Timer visitAllTimer = makeTimer(CassandraIO.class, "visit", "cassandra");
+    private final Timer putTimer = makeTimer(CassandraBitmapIO.class, "put", "cassandra");
+    private final Timer getTimer = makeTimer(CassandraBitmapIO.class, "get", "cassandra");
+    private final Timer visitAllTimer = makeTimer(CassandraBitmapIO.class, "visit", "cassandra");
 
-    public CassandraIO(String host, int port, String keyspace, String columnFamily) {
+    public CassandraBitmapIO(String host, int port, String keyspace, String columnFamily) {
         builder = new AstyanaxContext.Builder()
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()

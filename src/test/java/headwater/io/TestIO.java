@@ -61,7 +61,7 @@ public class TestIO {
     @Parameterized.Parameters
     public static List<Object[]> getParameters() {
         return new ArrayList<Object[]>() {{
-            add(new Object[]{new MemoryIO()});
+            add(new Object[]{new MemoryBitmapIO()});
         }};
     }
 }

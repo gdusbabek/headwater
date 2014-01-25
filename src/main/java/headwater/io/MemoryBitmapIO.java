@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MemoryIO implements IO<IBitmap> {
+public class MemoryBitmapIO implements IO<IBitmap> {
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
     
-    public MemoryIO() {}
+    public MemoryBitmapIO() {}
         
     private Map<Long, IBitmap> getRow(byte[] key) {
         synchronized (data) {
@@ -29,7 +29,7 @@ public class MemoryIO implements IO<IBitmap> {
         }
     }
     
-    public MemoryIO withBitmapFactory(BitmapFactory factory) {
+    public MemoryBitmapIO withBitmapFactory(BitmapFactory factory) {
         this.bitmapFactory = factory;
         return this;
     }
@@ -71,7 +71,7 @@ public class MemoryIO implements IO<IBitmap> {
     
     // this is basically an OR operation on all common bitsets. Afterward, we get rid of everything.
     // todo: think about concurrency. we'll want to be able to put while we are flushing.
-    public void flush(CassandraIO receiver) throws Exception {
+    public void flush(CassandraBitmapIO receiver) throws Exception {
         // first, merge.
         for (byte[] key : data.keySet()) {
             for (Map.Entry<Long, IBitmap> col : data.get(key).entrySet()) {

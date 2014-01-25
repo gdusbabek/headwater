@@ -7,7 +7,7 @@ import headwater.bitmap.MemoryBitmap2;
 import headwater.hashing.BitHashableKey;
 import headwater.hashing.Hashers;
 import headwater.io.IO;
-import headwater.io.MemoryIO;
+import headwater.io.MemoryBitmapIO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class TestIndexing {
     @Before
     public void setup() {
         final int segmentLength = 8192;
-        this.io = new MemoryIO().withBitmapFactory(new BitmapFactory() {
+        this.io = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
             @Override
             public IBitmap make() {
                 return new MemoryBitmap2(segmentLength);

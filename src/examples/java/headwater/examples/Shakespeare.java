@@ -10,8 +10,8 @@ import headwater.index.KeyObserver;
 import headwater.index.Lookup;
 import headwater.index.StandardIndexReader;
 import headwater.index.StandardIndexWriter;
-import headwater.io.CassandraIO;
-import headwater.io.MemoryIO;
+import headwater.io.CassandraBitmapIO;
+import headwater.io.MemoryBitmapIO;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,7 +64,7 @@ public class Shakespeare {
     
     public static void queryIndex(String args[]) {
         try {
-            CassandraIO cassandra = new CassandraIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
+            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
             final Map<Long, String> bitToKey = new HashMap<Long, String>();
             final List<ToIndex> lines = readShakespeareFiles();
             final Map<String, String> linesMap = new HashMap<String, String>();
@@ -132,8 +132,8 @@ public class Shakespeare {
             final Map<Long, String> bitToKey = new HashMap<Long, String>();
             
             // we're going to need a cassandra IO to flush to.
-            CassandraIO cassandra = new CassandraIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
-            MemoryIO memory = new MemoryIO().withBitmapFactory(new BitmapFactory() {
+            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
+            MemoryBitmapIO memory = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
                 public IBitmap make() {
                     return MemoryBitmap2.wrap(new byte[SEGMENT_SIZE]);
                 }

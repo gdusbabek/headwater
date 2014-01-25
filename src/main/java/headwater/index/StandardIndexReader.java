@@ -6,7 +6,7 @@ import headwater.bitmap.IBitmap;
 import headwater.hashing.Hashers;
 import headwater.io.ColumnObserver;
 import headwater.io.IO;
-import headwater.io.MemoryIO;
+import headwater.io.MemoryBitmapIO;
 import headwater.trigram.AsciiAugmentationStrategy;
 import headwater.trigram.AugmentationStrategy;
 import headwater.trigram.Trigram;
@@ -34,7 +34,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     
     public StandardIndexReader(int segmentBitLength) {
         this.segmentBitLength = segmentBitLength;
-        this.io = new MemoryIO();
+        this.io = new MemoryBitmapIO();
     }
     
     public StandardIndexReader<K, F> withIO(IO io) {
