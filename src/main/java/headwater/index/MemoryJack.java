@@ -15,6 +15,8 @@ public class MemoryJack<K, F, V> implements KeyObserver<K, F, V>, DataLookup<K, 
     private Map<Long, K> bitToKey = new HashMap<Long, K>();
     private Map<CompositeKey, V> store = new HashMap<CompositeKey, V>();
     
+    public MemoryJack() { }
+    
     // KeyObserver
     
     @Override
