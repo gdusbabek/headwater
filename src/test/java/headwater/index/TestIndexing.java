@@ -29,7 +29,7 @@ public class TestIndexing {
     
     private long bitmapLength = 4294967296L;
     private IO io;
-//    private MemoryJack<String, String, String> jack;
+//    private PureMemoryJack<String, String, String> jack;
     private IOJack<String, String, String> jack;
     private StandardIndexReader<String, String> reader;
     private StandardIndexWriter<String, String> writer;
@@ -43,7 +43,7 @@ public class TestIndexing {
                 return new MemoryBitmap2(segmentLength);
             }
         });
-//        this.jack = new MemoryJack<String, String, String>();
+//        this.jack = new PureMemoryJack<String, String, String>();
         this.jack = new IOJack<String, String, String>(StringSerializer.get());
         this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withDataLookup(jack).withKeyLookup(jack);
         this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(jack);
