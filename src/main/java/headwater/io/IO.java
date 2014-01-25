@@ -1,10 +1,8 @@
 package headwater.io;
 
-import headwater.bitmap.IBitmap;
-
-public interface IO {
-    public void put(byte[] key, long col, IBitmap value) throws Exception;
-    public IBitmap get(byte[] key, long col) throws Exception;
+public interface IO<T> {
+    public void put(byte[] key, long col, T value) throws Exception;
+    public T get(byte[] key, long col) throws Exception;
     public void del(byte[] key, long col) throws Exception;
-    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception;
+    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver<T> observer) throws Exception;
 }

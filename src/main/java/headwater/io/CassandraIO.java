@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class CassandraIO implements IO {
+public class CassandraIO implements IO<IBitmap> {
 
     private Keyspace keyspace;
     private final ColumnFamily<byte[], byte[]> columnFamily;

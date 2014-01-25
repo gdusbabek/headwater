@@ -18,7 +18,7 @@ public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
     private final BigInteger indexBitLength;
     private KeyObserver<K, F, String> observer = new NullKeyObserver<K, F, String>();
     
-    private IO io;
+    private IO<IBitmap> io;
     
     public StandardIndexWriter(final int segmentBitLength, long indexBitLength) {
         if (indexBitLength % segmentBitLength != 0)

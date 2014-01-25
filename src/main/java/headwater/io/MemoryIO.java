@@ -7,10 +7,11 @@ import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.BitmapUtils;
 import headwater.bitmap.IBitmap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MemoryIO implements IO {
+public class MemoryIO implements IO<IBitmap> {
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
@@ -48,6 +49,9 @@ public class MemoryIO implements IO {
         value = bitmapFactory.make();
         getRow(key).put(col, value);
         return value;
+    }
+
+    public void bulkPut(Map<byte[], List<Tuple<byte[], byte[]>>> data) {
         
     }
 

@@ -28,7 +28,7 @@ import java.util.Set;
 public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     private static final Logger log = LoggerFactory.getLogger(StandardIndexReader.class);
     
-    private IO io;
+    private IO<IBitmap> io;
     private final int segmentBitLength;
     private Lookup<K, F, String> lookup;
     
@@ -110,7 +110,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         for (Trigram trigram :Trigram.makeNonOverlapping(parcel, augmentationStrategy)) {
             final byte[] indexKey = Hashers.computeIndexRowKey(field, trigram);
             try {
-                io.visitAllColumns(indexKey, 64, new ColumnObserver() {
+                io.visitAllColumns(indexKey, 64, new ColumnObserver<IBitmap>() {
                     public void observe(byte[] row, long segment, IBitmap value) {
                         colCount.inc();
                         long[] assertedInSegment = value.getAsserted();
