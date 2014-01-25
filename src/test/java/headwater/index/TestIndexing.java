@@ -28,8 +28,6 @@ public class TestIndexing {
     
     private long bitmapLength = 4294967296L;
     private IO io;
-    private Lookup<String, String, String> lookup;
-    private KeyObserver<String, String, String> observer;
     private MemoryJack<String, String, String> jack;
     private StandardIndexReader<String, String> reader;
     private StandardIndexWriter<String, String> writer;
@@ -44,10 +42,8 @@ public class TestIndexing {
             }
         });
         this.jack = new MemoryJack<String, String, String>();
-        this.lookup = jack;
-        this.observer = jack;
-        this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withLookup(lookup);
-        this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(observer);
+        this.reader = new StandardIndexReader<String, String>(segmentLength).withIO(io).withDataLookup(jack).withKeyLookup(jack);
+        this.writer = new StandardIndexWriter<String, String>(segmentLength, bitmapLength).withIO(io).withObserver(jack);
         
         Assert.assertNotNull(reader);
         Assert.assertNotNull(writer);

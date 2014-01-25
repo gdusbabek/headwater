@@ -30,7 +30,8 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
     
     private IO<Long, IBitmap> io;
     private final int segmentBitLength;
-    private Lookup<K, F, String> lookup;
+    private DataLookup<K, F, String> dataLookup;
+    private KeyLookup<K> keyLookup;
     
     public StandardIndexReader(int segmentBitLength) {
         this.segmentBitLength = segmentBitLength;
@@ -42,8 +43,13 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         return this;
     }
     
-    public StandardIndexReader<K, F> withLookup(Lookup<K, F, String> lookup) {
-        this.lookup = lookup;
+    public StandardIndexReader<K, F> withDataLookup(DataLookup<K, F, String> lookup) {
+        this.dataLookup = lookup;
+        return this;
+    }
+    
+    public StandardIndexReader<K, F> withKeyLookup(KeyLookup<K> lookup) {
+        this.keyLookup = lookup;
         return this;
     }
     
@@ -75,7 +81,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         if (candidateBits == null)
             return results; // nothing.
         
-        Set<K> keyCandidates = new HashSet<K>(lookup.toKeys(Utils.unbox(candidateBits.toArray(new Long[candidateBits.size()]))));
+        Set<K> keyCandidates = new HashSet<K>(keyLookup.toKeys(Utils.unbox(candidateBits.toArray(new Long[candidateBits.size()]))));
         
         // the candidates may or may not match. the whole point of the bitmap index is to whittle that question down
         // to candidates that we can run the regex against on a single machine.  This is what we do now.
@@ -91,7 +97,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         PatternMatcher matcher = new Perl5Matcher();
         
         for (K key: keyCandidates) {
-            String value = lookup.lookup(key, field);
+            String value = dataLookup.lookup(key, field);
             if (value != null && matcher.matches(value, pattern))
                 results.add(key);
         }

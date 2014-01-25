@@ -6,8 +6,9 @@ import headwater.bitmap.MemoryBitmap2;
 import headwater.hashing.BitHashableKey;
 import headwater.hashing.FunnelHasher;
 import headwater.hashing.Hashers;
+import headwater.index.DataLookup;
+import headwater.index.KeyLookup;
 import headwater.index.KeyObserver;
-import headwater.index.Lookup;
 import headwater.index.StandardIndexReader;
 import headwater.index.StandardIndexWriter;
 import headwater.io.CassandraBitmapIO;
@@ -72,11 +73,12 @@ public class Shakespeare {
                     linesMap.put(line.key, line.value);
     
             // KEY: $fileName_$lineNumber, FIELD: TEXT, VALUE: $line
-            Lookup<String, String, String> lookup = new Lookup<String, String, String>() {
+            DataLookup<String, String, String> dataLookup = new DataLookup<String, String, String>() {
                 public String lookup(String key, String field) {
                     return linesMap.get(key);
                 }
-    
+            };
+            KeyLookup<String> keyLookup = new KeyLookup<String>() {
                 public Collection<String> toKeys(long[] bits) {
                     List<String> keys = new ArrayList<String>();
                     for (long bit : bits)
@@ -97,7 +99,8 @@ public class Shakespeare {
             
             StandardIndexReader<String, String> reader = new StandardIndexReader<String, String>(SEGMENT_SIZE)
                     .withIO(cassandra)
-                    .withLookup(lookup);
+                    .withDataLookup(dataLookup)
+                    .withKeyLookup(keyLookup);
             
             
             String[] queries = new String[] {
