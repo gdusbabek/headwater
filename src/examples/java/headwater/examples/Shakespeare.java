@@ -59,13 +59,13 @@ public class Shakespeare {
     }
     
     public static void main(String args[]) {
-        //buildIndex(args);
+        buildIndex(args);
         queryIndex(args);
     }
     
     public static void queryIndex(String args[]) {
         try {
-            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
+            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "shakespeare", "shakespeare_bitmaps");
             final Map<Long, String> bitToKey = new HashMap<Long, String>();
             final List<ToIndex> lines = readShakespeareFiles();
             final Map<String, String> linesMap = new HashMap<String, String>();
@@ -135,7 +135,7 @@ public class Shakespeare {
             final Map<Long, String> bitToKey = new HashMap<Long, String>();
             
             // we're going to need a cassandra IO to flush to.
-            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "headwater_index", "bitmap_index");
+            CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "shakespeare", "shakespeare_bitmaps");
             MemoryBitmapIO memory = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
                 public IBitmap make() {
                     return MemoryBitmap2.wrap(new byte[SEGMENT_SIZE]);

@@ -1,10 +1,11 @@
-create keyspace headwater_index
+create keyspace shakespeare
     with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy'
     and strategy_options = {replication_factor:1};
 
-use headwater_index;
+use shakespeare;
 
-create column family bitmap_index
+-- this is where the bitmaps live.
+create column family shakespeare_bitmaps
     with column_type='Standard'
     and comparator='BytesType'
     and key_validation_class='BytesType'
@@ -12,14 +13,30 @@ create column family bitmap_index
     and compaction_strategy=LeveledCompactionStrategy
     and compaction_strategy_options={sstable_size_in_mb:256};
 
-create column family bit_to_key
+-- one long row that maps bits to keys
+-- key: a constant string
+-- column name: the bit as a long
+-- column value: the key
+create column family shakespeare_bit_to_key_long_row
     with column_type='Standard'
+    and key_validation_class='UTF8Type'
     and comparator='LongType'
     and default_validation_class='UTF8Type';
-    
-create keyspace headwater_data
-    with placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy'
-    and strategy_options = {replication_factor:1};
-    
-use headwater_data;
+
+-- very short rows that map bits to keys
+-- key: the bit as a long
+-- column name: the key as a string
+-- column value: empty
+create column family shakespeare_bit_to_key_short_row
+    with column_type='Standard'
+    and key_validation_class='LongType'
+    and comparator='UTF8Type'
+    and default_validation_class='BytesType';
+
+-- data to be indexed lives here.
+create column family shakespeare_key_value_data
+    with column_type='Standard'
+    and key_validation_class='UTF8Type'
+    and comparator='UTF8Type'
+    and default_validation_class='UTF8Type';
 

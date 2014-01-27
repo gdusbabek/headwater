@@ -1,2 +1,5 @@
-use headwater_index;
-truncate bitmap_index;
+use shakespeare;
+truncate shakespeare_bitmaps;
+truncate shakespeare_bit_to_key_long_row;
+truncate shakespeare_bit_to_key_short_row;
+truncate shakespeare_key_value_data;
