@@ -1,5 +1,6 @@
 package headwater.io;
 
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.common.primitives.UnsignedBytes;
@@ -9,12 +10,13 @@ import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.BitmapUtils;
 import headwater.bitmap.IBitmap;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class MemoryBitmapIO implements IO<Long, IBitmap> {
-    private static final Timer bmFlushMergeTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "bitmaps", "merging"));
+    private static final Timer mergeTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(MemoryBitmapIO.class, "bitmaps", "merging"));
+    private static final Timer mutatingOrTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(MemoryBitmapIO.class, "bitmaps", "OR"));
+    private static final Histogram flushBatchSize = Utils.getMetricRegistry().histogram(MetricRegistry.name(MemoryBitmapIO.class, "bitmaps", "batch-size"));
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
@@ -54,10 +56,6 @@ public class MemoryBitmapIO implements IO<Long, IBitmap> {
         return value;
     }
 
-    public void bulkPut(Map<byte[], List<Tuple<byte[], byte[]>>> data) {
-        
-    }
-
     public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception {
         for (Map.Entry<Long, IBitmap> entry : getRow(key).entrySet()) {
             observer.observe(key, entry.getKey(), entry.getValue());
@@ -76,20 +74,24 @@ public class MemoryBitmapIO implements IO<Long, IBitmap> {
     // todo: think about concurrency. we'll want to be able to put while we are flushing.
     public void flush(CassandraBitmapIO receiver) throws Exception {
         
-        Timer.Context mergeCtx = bmFlushMergeTimer.time();
-        // first, merge.
+        Timer.Context mergeCtx = mergeTimer.time();
+        Timer.Context morCtx;
+        long count = 0;
+        
         for (byte[] key : data.keySet()) {
-            for (Map.Entry<Long, IBitmap> col : data.get(key).entrySet()) {
-                try {
-                    IBitmap currentValue = receiver.get(key, col.getKey());
-                    BitmapUtils.mutatingOR(col.getValue(), currentValue);
-                    
-                } catch (NotFoundException ex) {
-                    // no data in the db. will just use what we have here.
-                }
+            Map<Long, IBitmap> memory = data.get(key);
+            Map<Long, IBitmap> disk = receiver.bulkGet(key, memory.keySet());
+            
+            // merge.
+            for (Map.Entry<Long, IBitmap> diskEntry : disk.entrySet()) {
+                morCtx = mutatingOrTimer.time();
+                BitmapUtils.mutatingOR(memory.get(diskEntry.getKey()), diskEntry.getValue());
+                morCtx.stop();
+                count += 1;
             }
         }
         mergeCtx.stop();
+        flushBatchSize.update(count);
         
         // send it all to the new database.
         receiver.flush(data);
