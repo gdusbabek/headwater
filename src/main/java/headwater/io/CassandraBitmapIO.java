@@ -1,5 +1,7 @@
 package headwater.io;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.Keyspace;
@@ -15,10 +17,6 @@ import com.netflix.astyanax.query.RowQuery;
 import com.netflix.astyanax.serializers.BytesArraySerializer;
 import com.netflix.astyanax.thrift.ThriftFamilyFactory;
 import com.netflix.astyanax.util.RangeBuilder;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
 import headwater.Utils;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.MemoryBitmap2;
@@ -33,9 +31,12 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
     private final ColumnFamily<byte[], byte[]> columnFamily;
     private final AstyanaxContext.Builder builder;
     
-    private final Timer putTimer = makeTimer(CassandraBitmapIO.class, "put", "cassandra");
-    private final Timer getTimer = makeTimer(CassandraBitmapIO.class, "get", "cassandra");
-    private final Timer visitAllTimer = makeTimer(CassandraBitmapIO.class, "visit", "cassandra");
+    private static final Timer putTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "put"));
+    private static final Timer getTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "get"));
+    private static final Timer visitAllTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "visit"));
+    private static final Timer flushTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "flush"));
+    private static final Timer batchTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "batch"));
+    
 
     public CassandraBitmapIO(String host, int port, String keyspace, String columnFamily) {
         builder = new AstyanaxContext.Builder()
@@ -61,7 +62,7 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
     }
     
     public void put(byte[] key, Long col, IBitmap value) throws Exception {
-        TimerContext ctx = putTimer.time();
+        Timer.Context ctx = putTimer.time();
         try {
             keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).putValue(value.toBytes(), null).execute();
         } finally {
@@ -70,6 +71,7 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
     }
     
     public void flush(Map<byte[], Map<Long, IBitmap>> data) throws Exception {
+        Timer.Context ctx = flushTimer.time();
         int colCount = 0, maxCols = 1024;
         MutationBatch batch = keyspace.prepareMutationBatch().lockCurrentTimestamp();
         for (byte[] key : data.keySet()) {
@@ -87,19 +89,23 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
         }
         
         tryBatch(batch, colCount);
+        ctx.stop();
     }
     
     private void tryBatch(MutationBatch batch, int colCount) throws Exception {
+        Timer.Context ctx = batchTimer.time();
         try {
             batch.execute().getResult();
         } catch (Exception ex) {
             System.err.println(String.format("Busted with %d", colCount));
             throw ex;
+        } finally {
+            ctx.stop();
         }
     }
     
     public IBitmap get(byte[] key, Long col) throws Exception {
-        TimerContext ctx = getTimer.time();
+        Timer.Context ctx = getTimer.time();
         try {
             byte[] buf = keyspace.prepareQuery(columnFamily)
                     .getKey(key)
@@ -114,7 +120,7 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
     // iterate over all columns, paging through data in a row.
     public void visitAllColumns(byte[] key, int pageSize, ColumnObserver<Long, IBitmap> observer) throws Exception {
         
-        TimerContext ctx = visitAllTimer.time();
+        Timer.Context ctx = visitAllTimer.time();
         try {
             RowQuery<byte[], byte[]> query = keyspace
                     .prepareQuery(columnFamily)
@@ -137,18 +143,6 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
 
     public void del(byte[] key, Long col) throws Exception {
         keyspace.prepareColumnMutation(columnFamily, key, Utils.longToBytes(col)).deleteColumn().execute();
-    }
-    
-    private static final Map<MetricName, Timer> metrics = new HashMap<MetricName, Timer>();
-    private static Timer makeTimer(Class cls, String name, String scope) {
-        MetricName metricName = new MetricName(cls, name, scope);
-        if (metrics.containsKey(metricName))
-            return metrics.get(metricName);
-        else {
-            Timer timer = Metrics.newTimer(metricName, TimeUnit.MILLISECONDS, TimeUnit.MINUTES);
-            metrics.put(metricName, timer);
-            return timer;
-        }
     }
 }
 

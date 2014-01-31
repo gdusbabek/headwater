@@ -1,5 +1,8 @@
 package headwater;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -7,6 +10,27 @@ import java.util.Random;
 import java.util.Set;
 
 public class Utils {
+    private static final MetricRegistry metricRegistry = new MetricRegistry();
+    private static final JmxReporter metricsReporter = JmxReporter.forRegistry(metricRegistry).build();
+    
+    static {
+        metricsReporter.start();
+        Runtime.getRuntime().addShutdownHook(new Thread("Stop-Jmx-Reporter") {
+            @Override
+            public void run() {
+                try {
+                    metricsReporter.stop();
+                } catch (Throwable ex) {
+                    ex.printStackTrace(System.err);
+                }
+            }
+        });
+    }
+    
+    public static MetricRegistry getMetricRegistry() {
+        return metricRegistry;
+    }
+    
     public static long[] unbox(Long[] arr) {
         long[] newarr = new long[arr.length];
         for (int i = 0; i < newarr.length; i++)

@@ -1,5 +1,7 @@
 package headwater.io;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.google.common.primitives.UnsignedBytes;
 import com.netflix.astyanax.connectionpool.exceptions.NotFoundException;
 import headwater.Utils;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class MemoryBitmapIO implements IO<Long, IBitmap> {
+    private static final Timer bmFlushMergeTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "bitmaps", "merging"));
     
     private Map<byte[], Map<Long, IBitmap>> data = new TreeMap<byte[], Map<Long, IBitmap>>(UnsignedBytes.lexicographicalComparator());
     private BitmapFactory bitmapFactory = null;
@@ -72,6 +75,8 @@ public class MemoryBitmapIO implements IO<Long, IBitmap> {
     // this is basically an OR operation on all common bitsets. Afterward, we get rid of everything.
     // todo: think about concurrency. we'll want to be able to put while we are flushing.
     public void flush(CassandraBitmapIO receiver) throws Exception {
+        
+        Timer.Context mergeCtx = bmFlushMergeTimer.time();
         // first, merge.
         for (byte[] key : data.keySet()) {
             for (Map.Entry<Long, IBitmap> col : data.get(key).entrySet()) {
@@ -84,6 +89,7 @@ public class MemoryBitmapIO implements IO<Long, IBitmap> {
                 }
             }
         }
+        mergeCtx.stop();
         
         // send it all to the new database.
         receiver.flush(data);
