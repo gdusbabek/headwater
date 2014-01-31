@@ -13,8 +13,8 @@ import java.util.Map;
 @Deprecated
 public class PureMemoryJack<K, F, V> implements KeyObserver<K, F, V>, DataLookup<K, F, V>, KeyLookup<K> {
     
-    private Map<Long, K> bitToKey = new HashMap<Long, K>();
-    private Map<CompositeKey, V> store = new HashMap<CompositeKey, V>();
+    private final Map<Long, K> bitToKey = new HashMap<Long, K>();
+    private final Map<F, Map<K, V>> store = new HashMap<F, Map<K, V>>();
     
     public PureMemoryJack() { }
     
@@ -23,14 +23,30 @@ public class PureMemoryJack<K, F, V> implements KeyObserver<K, F, V>, DataLookup
     @Override
     public void observe(BitHashableKey<K> key, F field, V value) {
         bitToKey.put(key.getHashBit(), key.getKey());
-        store.put(new CompositeKey<K, F>(key.getKey(), field), value);
+        storeMapFor(field).put(key.getKey(), value);
+    }
+    
+    private Map<K, V> storeMapFor(F field) {
+        Map<K, V> map = store.get(field);
+        
+        // double checking means we'll have to synchronize less.
+        if (map == null) {
+            synchronized (store) {
+                map = store.get(field);
+                if (map == null) {
+                    map = new HashMap<K, V>();
+                    store.put(field, map);
+                }
+            }
+        }
+        return map;
     }
     
     // Lookup.
     
     @Override
     public V lookup(K key, F field) {
-        return store.get(new CompositeKey<K, F>(key, field));
+        return storeMapFor(field).get(key);
     }
 
     @Override
@@ -47,30 +63,5 @@ public class PureMemoryJack<K, F, V> implements KeyObserver<K, F, V>, DataLookup
         return bitToKey.get(bit);
     }
     
-    // help.
-    
-    private static class CompositeKey<K, F> {
-        private final K k;
-        private final F f;
-        private final Integer hashCode;
-        
-        public CompositeKey(K k, F f) {
-            this.k = k;
-            this.f = f;
-            this.hashCode = k.hashCode() ^ f.hashCode();
-        }
-        
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-        
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(obj instanceof CompositeKey))
-                return false;
-            CompositeKey other = (CompositeKey)obj;
-            return other.k.equals(this.k) && other.f.equals(this.f);
-        }
-    }
+    // todo: write the flush parts.
 }
