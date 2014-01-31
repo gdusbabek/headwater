@@ -7,9 +7,12 @@ import headwater.hashing.Hashers;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 // todo: Convert this into a generic Ngram class.
 public class Trigram implements Comparable<Trigram> {
@@ -151,9 +154,12 @@ public class Trigram implements Comparable<Trigram> {
     
     // when we index something, we usually want to index all trigrams (they overlap each other).
     public static Iterable<Trigram> makeOverlapping(String s, AugmentationStrategy augmentation) {
+        Set<Integer> listHas = new HashSet<Integer>();
         List<Trigram> list = new ArrayList<Trigram>();
         Queue<Integer> buf = new LinkedList<Integer>();
         boolean waxing = true;
+        int[] bufAsBytes;
+        int hash;
         for (int i = 0; i < s.length();) {
             int cp = s.codePointAt(i);
             if (!waxing)
@@ -161,7 +167,12 @@ public class Trigram implements Comparable<Trigram> {
             buf.add(cp);
             if (buf.size() == N) {
                 waxing = false;
-                list.add(new Trigram(Utils.unbox(buf.toArray(new Integer[N]))));
+                bufAsBytes = Utils.unbox(buf.toArray(new Integer[N]));
+                hash = Arrays.hashCode(bufAsBytes);
+                if (!listHas.contains(hash)) {
+                    list.add(new Trigram(bufAsBytes));
+                    listHas.add(hash);
+                }
             }
             i += Character.charCount(cp);
         }
