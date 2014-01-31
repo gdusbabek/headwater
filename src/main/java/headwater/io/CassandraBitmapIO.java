@@ -1,5 +1,6 @@
 package headwater.io;
 
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.netflix.astyanax.AstyanaxContext;
@@ -21,9 +22,12 @@ import headwater.Utils;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.MemoryBitmap2;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class CassandraBitmapIO implements IO<Long, IBitmap> {
 
@@ -33,6 +37,8 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
     
     private static final Timer putTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "put"));
     private static final Timer getTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "get"));
+    private static final Timer bulkGetTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "bulk-get"));
+    private static final Histogram bulkGetHist = Utils.getMetricRegistry().histogram(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "bulk-get-counts"));
     private static final Timer visitAllTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "visit"));
     private static final Timer flushTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "flush"));
     private static final Timer batchTimer = Utils.getMetricRegistry().timer(MetricRegistry.name(CassandraBitmapIO.class, "cassandra", "batch"));
@@ -102,6 +108,30 @@ public class CassandraBitmapIO implements IO<Long, IBitmap> {
         } finally {
             ctx.stop();
         }
+    }
+    
+    // be aware of the memory implications of this method.
+    public Map<Long, IBitmap> bulkGet(byte[] key, Collection<Long> colNames) throws Exception {
+        List<byte[]> byteCols = new ArrayList<byte[]>(colNames.size());
+        for (Long col : colNames)
+            byteCols.add(Utils.longToBytes(col));
+        
+        Timer.Context ctx = bulkGetTimer.time();
+        Map<Long, IBitmap> map = new HashMap<Long, IBitmap>();
+        try {
+            ColumnList<byte[]> cols = keyspace.prepareQuery(columnFamily)
+                    .getKey(key).withColumnSlice(byteCols).execute().getResult();
+            Iterator<Column<byte[]>> it = cols.iterator();
+            Column<byte[]> col;
+            while (it.hasNext()) {
+                col = it.next();
+                map.put(Utils.bytesToLong(col.getName()), MemoryBitmap2.wrap(col.getValue(BytesArraySerializer.get())));
+            }
+        } finally {
+            ctx.stop();
+            bulkGetHist.update(colNames.size());
+        }
+        return map;
     }
     
     public IBitmap get(byte[] key, Long col) throws Exception {
