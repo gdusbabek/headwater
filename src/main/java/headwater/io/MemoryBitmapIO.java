@@ -56,7 +56,7 @@ public class MemoryBitmapIO implements IO<Long, IBitmap> {
         return value;
     }
 
-    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver observer) throws Exception {
+    public void visitAllColumns(byte[] key, int pageSize, ColumnObserver<Long, IBitmap> observer) throws Exception {
         for (Map.Entry<Long, IBitmap> entry : getRow(key).entrySet()) {
             observer.observe(key, entry.getKey(), entry.getValue());
         }

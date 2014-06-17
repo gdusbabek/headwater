@@ -7,6 +7,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.hash.PrimitiveSink;
+
 import headwater.trigram.Trigram;
 
 import java.lang.reflect.AccessibleObject;
@@ -71,6 +72,7 @@ public class Hashers {
         };
     }
     
+    @SuppressWarnings("unchecked")
     public static <T> Funnel<T> funnelFor(Class<T> type) {
         if (String.class.equals(type))
             return (Funnel<T>)StringFunnel;
@@ -105,7 +107,7 @@ public class Hashers {
     // always 128 bits.
     public static <F> byte[] computeIndexRowKey(F field, Trigram trigram) {
         Hasher hasher = HASH_FUNCTION.newHasher();
-        Funnel<F> fieldFunnel = (Funnel<F>) Hashers.funnelFor(field.getClass());
+        @SuppressWarnings("unchecked") Funnel<F> fieldFunnel = (Funnel<F>) Hashers.funnelFor(field.getClass());
         Funnel<Trigram> trigramFunnel = Hashers.funnelFor(Trigram.class);
         
         hasher.putObject(field, fieldFunnel);

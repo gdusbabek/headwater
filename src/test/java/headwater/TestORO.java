@@ -1,10 +1,11 @@
 package headwater;
 
-import junit.framework.Assert;
+
 import org.apache.oro.text.GlobCompiler;
 import org.apache.oro.text.regex.Pattern;
 import org.apache.oro.text.regex.PatternMatcher;
 import org.apache.oro.text.regex.Perl5Matcher;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

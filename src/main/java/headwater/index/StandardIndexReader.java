@@ -38,7 +38,7 @@ public class StandardIndexReader<K, F> implements IndexReader<K, F, String> {
         this.io = new MemoryBitmapIO();
     }
     
-    public StandardIndexReader<K, F> withIO(IO io) {
+    public StandardIndexReader<K, F> withIO(IO<Long, IBitmap> io) {
         this.io = io;
         return this;
     }

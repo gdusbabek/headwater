@@ -3,7 +3,8 @@ package headwater.io;
 import headwater.Utils;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.MemoryBitmap2;
-import junit.framework.Assert;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -16,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestIO {
     private final IO<Long, IBitmap> io;
     
-    public TestIO(IO io) {
+    public TestIO(IO<Long, IBitmap> io) {
         this.io = io;
     }
     

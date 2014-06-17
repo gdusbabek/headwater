@@ -38,13 +38,13 @@ public class StandardIndexWriter<K, F> implements IndexWriter<K, F, String> {
         return this;
     }
     
-    public StandardIndexWriter<K, F> withIO(IO io) {
+    public StandardIndexWriter<K, F> withIO(IO<Long, IBitmap> io) {
         this.io = io;
         return this;
     }
     
     public void add(K key, F field, String value) {
-        final BitHashableKey<K> keyHash = ((FunnelHasher<K>) Hashers.makeHasher(key.getClass(), indexBitLength.longValue())).hashableKey(key);
+        @SuppressWarnings("unchecked") final BitHashableKey<K> keyHash = ((FunnelHasher<K>) Hashers.makeHasher(key.getClass(), indexBitLength.longValue())).hashableKey(key);
         final long segment = keyHash.getHashBit() / segmentBitLength;
         final long bitInSegment = keyHash.getHashBit() % segmentBitLength;
         

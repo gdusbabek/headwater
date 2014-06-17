@@ -28,7 +28,7 @@ import java.util.Map;
 public class TestIndexing {
     
     private long bitmapLength = 4294967296L;
-    private IO io;
+    private IO<Long, IBitmap> io;
 //    private PureMemoryJack<String, String, String> jack;
     private IOJack<String, String, String> jack;
     private StandardIndexReader<String, String> reader;
@@ -101,15 +101,17 @@ public class TestIndexing {
         final Map<Long, String> bitToKey = new HashMap<Long, String>();
         final Map<String, String> lines = new HashMap<String, String>();
         for (File file : listing) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            int lineNumber = 0;
-            String line = reader.readLine();
-            while (line != null) {
-                BitHashableKey<String> key = Hashers.makeHasher(String.class, bitmapLength).hashableKey(file.getName() + "_" + lineNumber);
-                lineNumber += 1;
-                bitToKey.put(key.getHashBit(), key.getKey());
-                lines.put(key.getKey(), line);
-                line = reader.readLine();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                int lineNumber = 0;
+                String line = reader.readLine();
+                while (line != null) {
+                    BitHashableKey<String> key = Hashers.makeHasher(String.class, bitmapLength).hashableKey(
+                            file.getName() + "_" + lineNumber);
+                    lineNumber += 1;
+                    bitToKey.put(key.getHashBit(), key.getKey());
+                    lines.put(key.getKey(), line);
+                    line = reader.readLine();
+                }
             }
         }
         
@@ -149,15 +151,15 @@ public class TestIndexing {
             if (fileCount >= MAX_FILES)
                 break;
             fileCount += 1;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-            String line = reader.readLine();
-            int lineNumber = 0;
-            while (line != null) {
-                line = line.trim();
-                if (line.length() > 0)
-                    lines.add(new ToIndex(file.getName() + "_" + lineNumber, "TEXT", line));
-                lineNumber += 1;
-                line = reader.readLine();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                String line = reader.readLine();
+                int lineNumber = 0;
+                while (line != null) {
+                    line = line.trim();
+                    if (line.length() > 0) lines.add(new ToIndex(file.getName() + "_" + lineNumber, "TEXT", line));
+                    lineNumber += 1;
+                    line = reader.readLine();
+                }
             }
         }
         
