@@ -1,5 +1,6 @@
 package headwater.examples;
 
+import headwater.Utils;
 import headwater.bitmap.BitmapFactory;
 import headwater.bitmap.IBitmap;
 import headwater.bitmap.MemoryBitmap2;
@@ -25,6 +26,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.codahale.metrics.ConsoleReporter;
 
 public class Shakespeare {
     
@@ -57,12 +60,18 @@ public class Shakespeare {
         }
         return lines;
     }
-    
+
     public static void main(String args[]) {
+        long s = System.currentTimeMillis();
+
         buildIndex(args);
         queryIndex(args);
+
+        ConsoleReporter.forRegistry(Utils.getMetricRegistry()).build().report();
+
+        System.out.printf("%nComplete in %.2f seconds%n", ((System.currentTimeMillis() - s) / 1000d));
     }
-    
+
     public static void queryIndex(String args[]) {
         try {
             CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "shakespeare", "shakespeare_bitmaps");
@@ -138,7 +147,7 @@ public class Shakespeare {
             CassandraBitmapIO cassandra = new CassandraBitmapIO("127.0.0.1", 9160, "shakespeare", "shakespeare_bitmaps");
             MemoryBitmapIO memory = new MemoryBitmapIO().withBitmapFactory(new BitmapFactory() {
                 public IBitmap make() {
-                    return MemoryBitmap2.wrap(new byte[SEGMENT_SIZE]);
+                    return new MemoryBitmap2(SEGMENT_SIZE);
                 }
             });
     
